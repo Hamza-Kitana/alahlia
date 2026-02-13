@@ -1,0 +1,2792 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة الغياب - المدرسة</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #dadce0;
+            min-height: 100vh;
+            padding: 20px;
+            padding-top: 100px;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: #f1f3f4;
+            padding: 25px 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            border: 1px solid #bdc1c6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .header-logo {
+            height: 80px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .header-content {
+            text-align: center;
+        }
+
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #f1f3f4;
+            padding: 16px 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            z-index: 1000;
+            border-bottom: 1px solid #bdc1c6;
+        }
+
+        .date-filter-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .month-filter-select {
+            padding: 10px 18px;
+            border: 1px solid #bdc1c6;
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-weight: 500;
+            background: #ffffff;
+            color: #202124;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            min-width: 180px;
+        }
+
+        .month-filter-select:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
+        }
+
+        .top-bar-buttons {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .top-bar-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .top-bar-btn.add-btn {
+            background: #1a73e8;
+            color: white;
+            border-color: #1a73e8;
+        }
+
+        .top-bar-btn.add-btn:hover {
+            background: #1557b0;
+            box-shadow: 0 2px 4px rgba(26, 115, 232, 0.3);
+        }
+
+        .top-bar-btn.delete-btn-small {
+            background: #ea4335;
+            color: white;
+            border-color: #ea4335;
+        }
+
+        .top-bar-btn.delete-btn-small:hover {
+            background: #c5221f;
+            box-shadow: 0 2px 4px rgba(234, 67, 53, 0.3);
+        }
+
+
+
+        .header h1 {
+            color: #202124;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .header p {
+            color: #5f6368;
+            font-size: 1em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #f1f3f4;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card h3 {
+            color: #5f6368;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #1a73e8;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .control-card {
+            background: #f1f3f4;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .control-card h2 {
+            color: #202124;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #bdc1c6;
+            border-radius: 4px;
+            font-size: 0.95em;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: #ffffff;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: #1a73e8;
+            color: white;
+            border: 1px solid #1a73e8;
+        }
+
+        .btn-primary:hover {
+            background: #1557b0;
+            box-shadow: 0 2px 4px rgba(26, 115, 232, 0.3);
+        }
+
+        .btn-danger {
+            background: #ea4335;
+            color: white;
+            border: 1px solid #ea4335;
+        }
+
+        .btn-danger:hover {
+            background: #c5221f;
+            box-shadow: 0 2px 4px rgba(234, 67, 53, 0.3);
+        }
+
+        .btn-success {
+            background: #34a853;
+            color: white;
+            border: 1px solid #34a853;
+        }
+
+        .btn-success:hover {
+            background: #2d8e47;
+            box-shadow: 0 2px 4px rgba(52, 168, 83, 0.3);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .table-header-info {
+            background: #f1f3f4;
+            padding: 20px 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #bdc1c6;
+            text-align: center;
+        }
+
+        .table-header-info h3 {
+            margin: 0;
+            color: #202124;
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+
+        .table-header-info span {
+            color: #1a73e8;
+            font-weight: 600;
+        }
+
+        .main-content-wrapper {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            align-items: flex-start;
+            position: relative;
+        }
+
+        .table-wrapper {
+            flex: 1;
+            order: 1;
+        }
+
+        .months-sidebar {
+            width: 280px;
+            background: #f1f3f4;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #bdc1c6;
+            position: sticky;
+            top: 90px;
+            max-height: calc(100vh - 110px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            order: 2;
+            flex-shrink: 0;
+            align-self: flex-start;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .months-sidebar h3 {
+            margin: 0 0 20px 0;
+            color: #202124;
+            font-size: 1.1em;
+            font-weight: 600;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #bdc1c6;
+        }
+
+        .year-group {
+            margin-bottom: 15px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #bdc1c6;
+            overflow: hidden;
+        }
+
+        .year-group-header {
+            padding: 12px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            border-bottom: 1px solid #bdc1c6;
+        }
+
+        .year-group-header:hover {
+            background: #f1f3f4;
+        }
+
+        .year-group-title {
+            font-weight: 600;
+            color: #202124;
+            font-size: 1em;
+            margin: 0;
+        }
+
+        .year-group-toggle {
+            font-size: 1em;
+            color: #5f6368;
+            transition: transform 0.2s;
+        }
+
+        .year-group.expanded .year-group-toggle {
+            transform: rotate(90deg);
+        }
+
+        .year-group-months {
+            display: none;
+            padding: 8px;
+        }
+
+        .year-group.expanded .year-group-months {
+            display: block;
+        }
+
+        .month-item {
+            background: white;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border: 1px solid #bdc1c6;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .month-item:hover {
+            border-color: #1a73e8;
+            box-shadow: 0 2px 4px rgba(26, 115, 232, 0.1);
+        }
+
+        .month-item.active {
+            background: #e8f0fe;
+            border-color: #1a73e8;
+        }
+
+        .month-item-name {
+            font-weight: 500;
+            color: #202124;
+            font-size: 0.95em;
+            flex: 1;
+        }
+
+        .month-edit-btn {
+            padding: 6px 12px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 10px;
+        }
+
+        .month-edit-btn:hover {
+            background: #1557b0;
+        }
+
+        .top-bar-btn.add-month-btn {
+            background: #fbbc04;
+            color: #202124;
+            border-color: #fbbc04;
+        }
+
+        .top-bar-btn.add-month-btn:hover {
+            background: #f9ab00;
+            box-shadow: 0 2px 4px rgba(251, 188, 4, 0.3);
+        }
+
+        .top-bar-btn.print-btn {
+            background: #5f6368;
+            color: white;
+            border-color: #5f6368;
+        }
+
+        .top-bar-btn.print-btn:hover {
+            background: #3c4043;
+            box-shadow: 0 2px 4px rgba(95, 99, 104, 0.3);
+        }
+
+        .table-container {
+            background: #f1f3f4;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 0;
+            margin-bottom: 30px;
+            overflow-x: auto;
+            overflow-y: visible;
+            border: 1px solid #bdc1c6;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95em;
+            min-width: 900px;
+        }
+
+        .main-table thead {
+            background: #f1f3f4;
+            color: #202124;
+            border-bottom: 2px solid #bdc1c6;
+        }
+
+        .main-table th {
+            padding: 16px 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.95em;
+            border-right: 1px solid #bdc1c6;
+            color: #5f6368;
+            white-space: nowrap;
+        }
+
+        .main-table th:last-child {
+            border-right: none;
+        }
+
+        .main-table td {
+            padding: 14px 12px;
+            text-align: center;
+            border-right: 1px solid #bdc1c6;
+            border-bottom: 1px solid #bdc1c6;
+            vertical-align: middle;
+            font-size: 0.95em;
+            color: #202124;
+        }
+
+        .main-table td:last-child {
+            border-right: none;
+        }
+
+        .main-table tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        .main-table tbody tr:hover {
+            background-color: #e8f0fe !important;
+        }
+
+        .main-table tbody tr:nth-child(even) {
+            background-color: #f1f3f4;
+        }
+
+        .main-table tbody tr:nth-child(even):hover {
+            background-color: #e8f0fe !important;
+        }
+
+        .grade-row {
+            background: #f1f3f4 !important;
+            font-weight: 600;
+            font-size: 1em;
+            border-top: 2px solid #bdc1c6 !important;
+            transition: background-color 0.2s;
+        }
+
+        .grade-row:hover {
+            background: #d2e3fc !important;
+        }
+
+        .class-row {
+            background: #f1f3f4 !important;
+            font-weight: 400;
+        }
+
+        .total-row {
+            background: #e8f0fe !important;
+            font-weight: 600;
+            font-size: 1.05em;
+            border-top: 2px solid #1a73e8 !important;
+            transition: background-color 0.2s;
+        }
+
+        .total-row:hover {
+            background: #aecbfa !important;
+        }
+
+        .number-cell {
+            font-weight: 500;
+            color: #202124;
+            font-size: 1em;
+        }
+
+        .total-number-cell {
+            font-weight: 600;
+            color: #1a73e8;
+            font-size: 1.1em;
+        }
+
+        .student-cell {
+            padding: 15px !important;
+            min-width: 500px;
+        }
+
+        .attendance-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+
+        .students-list {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f1f3f4;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 2px solid #e0e0e0;
+        }
+
+        .students-list-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+
+        .student-item {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .student-item.present {
+            background: #34a853;
+            color: white;
+        }
+
+        .student-item.absent {
+            background: #ea4335;
+            color: white;
+        }
+
+        .student-item.none {
+            background: #f1f3f4;
+            color: #666;
+            border: 2px solid #bdc1c6;
+        }
+
+        .delete-icon {
+            background: none;
+            border: none;
+            color: #ea4335;
+            font-size: 1.5em;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            line-height: 1;
+        }
+
+        .delete-icon:hover {
+            background: #fce8e6;
+            color: #c5221f;
+            box-shadow: 0 2px 4px rgba(234, 67, 53, 0.2);
+        }
+
+        .delete-icon:active {
+            transform: scale(0.9);
+        }
+
+        .summary-cell {
+            font-weight: bold;
+            background: #fff3cd !important;
+            color: #856404;
+        }
+
+        .total-cell {
+            font-weight: bold;
+            background: #d1ecf1 !important;
+            color: #0c5460;
+            font-size: 1.1em;
+        }
+
+        .add-btn-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .add-main-btn {
+            padding: 18px 40px;
+            font-size: 1.3em;
+            font-weight: 500;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(26, 115, 232, 0.2);
+            transition: all 0.2s;
+        }
+
+        .add-main-btn:hover {
+            background: #1557b0;
+            box-shadow: 0 4px 8px rgba(26, 115, 232, 0.3);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(60, 64, 67, 0.6);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #f1f3f4;
+            padding: 32px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            animation: modalSlideIn 0.2s ease-out;
+            border: 1px solid #bdc1c6;
+            position: relative;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-header h2 {
+            color: #202124;
+            font-size: 1.5em;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #f1f3f4;
+            border: 2px solid #bdc1c6;
+            font-size: 1.8em;
+            cursor: pointer;
+            color: #5f6368;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+            font-weight: bold;
+            line-height: 1;
+            z-index: 100;
+        }
+
+        .modal-close:hover {
+            background: #ea4335;
+            color: white;
+            border-color: #ea4335;
+            transform: scale(1.1);
+        }
+
+        .modal-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .modal-tab {
+            flex: 1;
+            padding: 15px;
+            background: none;
+            border: none;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .modal-tab.active {
+            color: #1a73e8;
+            border-bottom-color: #1a73e8;
+        }
+
+        .modal-tab:hover {
+            color: #1a73e8;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .modal-content .form-group {
+            margin-bottom: 25px;
+        }
+
+        .modal-content .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .modal-content .form-group input,
+        .modal-content .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #bdc1c6;
+            border-radius: 4px;
+            font-size: 0.95em;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .modal-content .form-group input:focus,
+        .modal-content .form-group select:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
+        }
+
+        .modal-content .btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+
+        .delete-item {
+            background: #f1f3f4;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            border-right: 3px solid #ea4335;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            border: 1px solid #bdc1c6;
+        }
+
+        .delete-item:hover {
+            background: #fce8e6;
+            border-color: #ea4335;
+        }
+
+        .delete-item-info {
+            flex: 1;
+        }
+
+        .delete-item-info h3 {
+            margin: 0 0 5px 0;
+            color: #333;
+            font-size: 1.2em;
+        }
+
+        .delete-item-info p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .delete-item-btn {
+            padding: 8px 16px;
+            background: #ea4335;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9em;
+        }
+
+        .delete-item-btn:hover {
+            background: #c5221f;
+            box-shadow: 0 2px 4px rgba(234, 67, 53, 0.3);
+        }
+
+        .delete-grade-item {
+            background: #f1f3f4;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            border-right: 3px solid #ea4335;
+            border: 1px solid #bdc1c6;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .delete-grade-item:hover {
+            background: #fce8e6;
+            border-color: #ea4335;
+        }
+
+        .delete-grade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .delete-grade-header-content {
+            flex: 1;
+        }
+
+        .delete-grade-header-content h3 {
+            margin: 0 0 5px 0;
+            color: #202124;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .delete-grade-header-content p {
+            margin: 0;
+            color: #5f6368;
+            font-size: 0.9em;
+        }
+
+        .delete-grade-toggle {
+            font-size: 1.2em;
+            color: #5f6368;
+            transition: transform 0.2s;
+            margin-right: 10px;
+        }
+
+        .delete-grade-item.expanded .delete-grade-toggle {
+            transform: rotate(90deg);
+        }
+
+        .delete-classes-list {
+            display: none;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #bdc1c6;
+        }
+
+        .delete-grade-item.expanded .delete-classes-list {
+            display: block;
+        }
+
+        .delete-class-item {
+            background: white;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            margin-right: 20px;
+            border-radius: 6px;
+            border-right: 2px solid #ea4335;
+            border: 1px solid #bdc1c6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .delete-class-item:hover {
+            background: #fce8e6;
+            border-color: #ea4335;
+        }
+
+        .delete-class-info h4 {
+            margin: 0 0 3px 0;
+            color: #202124;
+            font-size: 1em;
+            font-weight: 500;
+        }
+
+        .delete-class-info p {
+            margin: 0;
+            color: #5f6368;
+            font-size: 0.85em;
+        }
+
+        .delete-year-item {
+            background: #f1f3f4;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            border-right: 3px solid #ea4335;
+            border: 1px solid #bdc1c6;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .delete-year-item:hover {
+            background: #fce8e6;
+            border-color: #ea4335;
+        }
+
+        .delete-year-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .delete-year-header-content {
+            flex: 1;
+        }
+
+        .delete-year-header-content h3 {
+            margin: 0;
+            color: #202124;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .delete-year-toggle {
+            font-size: 1.2em;
+            color: #5f6368;
+            transition: transform 0.2s;
+            margin-right: 10px;
+        }
+
+        .delete-year-item.expanded .delete-year-toggle {
+            transform: rotate(90deg);
+        }
+
+        .delete-months-list {
+            display: none;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #bdc1c6;
+        }
+
+        .delete-year-item.expanded .delete-months-list {
+            display: block;
+        }
+
+        .delete-month-item {
+            background: white;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            margin-right: 20px;
+            border-radius: 6px;
+            border-right: 2px solid #ea4335;
+            border: 1px solid #bdc1c6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .delete-month-item:hover {
+            background: #fce8e6;
+            border-color: #ea4335;
+        }
+
+        .delete-month-info h4 {
+            margin: 0;
+            color: #202124;
+            font-size: 1em;
+            font-weight: 500;
+        }
+
+        .grade-item-attendance {
+            background: #f1f3f4;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            border-right: 3px solid #1a73e8;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #bdc1c6;
+        }
+
+        .grade-item-attendance:hover {
+            background: #f1f3f4;
+            border-color: #1a73e8;
+        }
+
+        .grade-item-attendance.active {
+            background: #e8f0fe;
+            border-right-color: #1a73e8;
+        }
+
+        .grade-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .grade-item-header h3 {
+            margin: 0;
+            color: #202124;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .grade-item-header .arrow {
+            font-size: 1.2em;
+            color: #5f6368;
+            transition: transform 0.2s;
+        }
+
+        .grade-item-attendance.active .arrow {
+            transform: rotate(90deg);
+        }
+
+        .classes-list-attendance {
+            display: none;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .grade-item-attendance.active .classes-list-attendance {
+            display: block;
+        }
+
+        .class-attendance-item {
+            background: #ffffff;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            border-right: 3px solid #34a853;
+            border: 1px solid #bdc1c6;
+        }
+
+        .class-attendance-item h4 {
+            margin: 0 0 12px 0;
+            color: #202124;
+            font-size: 1em;
+            font-weight: 500;
+        }
+
+        .class-attendance-item .form-group {
+            margin-bottom: 12px;
+        }
+
+        .class-attendance-item input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #bdc1c6;
+            border-radius: 4px;
+            font-size: 0.95em;
+            font-weight: 400;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .class-attendance-item input:focus {
+            outline: none;
+            border-color: #34a853;
+            box-shadow: 0 0 0 2px rgba(52, 168, 83, 0.1);
+        }
+
+        .save-all-btn {
+            margin-top: 20px;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .save-all-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+        }
+
+        .management-item {
+            background: #f1f3f4;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-right: 4px solid #667eea;
+        }
+
+        .management-item h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .attendance-control-item {
+            background: #f1f3f4;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border-right: 4px solid #27ae60;
+        }
+
+        .attendance-control-item h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .attendance-control-item .form-group {
+            margin-bottom: 15px;
+        }
+
+        .attendance-control-item .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .attendance-control-item .form-group select,
+        .attendance-control-item .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .attendance-control-item .form-group select:focus,
+        .attendance-control-item .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .attendance-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .attendance-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        .attendance-buttons .present-btn {
+            background: #27ae60;
+        }
+
+        .attendance-buttons .present-btn:hover {
+            background: #229954;
+            transform: scale(1.05);
+        }
+
+        .attendance-buttons .absent-btn {
+            background: #e74c3c;
+        }
+
+        .attendance-buttons .absent-btn:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+
+        /* تحسينات للأجهزة اللوحية */
+        @media (max-width: 1024px) {
+            .main-content-wrapper {
+                flex-direction: column;
+            }
+
+            .months-sidebar {
+                width: 100%;
+                position: sticky;
+                top: 90px;
+                max-height: calc(100vh - 110px);
+                order: 1;
+                margin-bottom: 20px;
+                z-index: 10;
+            }
+
+            .table-wrapper {
+                order: 2;
+                width: 100%;
+            }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .header-logo {
+                height: 60px;
+            }
+        }
+
+        /* تحسينات للهواتف */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                padding-top: 90px;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .header {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .header h1 {
+                font-size: 1.3em;
+            }
+
+            .header-logo {
+                height: 50px;
+            }
+
+            .top-bar {
+                padding: 12px 15px;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .top-bar-buttons {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .top-bar-btn {
+                padding: 10px 15px;
+                font-size: 0.85em;
+                flex: 1;
+                min-width: 100px;
+            }
+
+            .main-content-wrapper {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .months-sidebar {
+                width: 100%;
+                position: sticky;
+                top: 90px;
+                max-height: calc(100vh - 110px);
+                padding: 15px;
+                z-index: 10;
+            }
+
+            .months-sidebar h3 {
+                font-size: 1em;
+            }
+
+            .month-item {
+                padding: 12px;
+            }
+
+            .month-item-name {
+                font-size: 0.9em;
+            }
+
+            .month-edit-btn {
+                padding: 6px 10px;
+                font-size: 0.8em;
+            }
+
+            .table-header-info {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .table-header-info h3 {
+                font-size: 1em;
+            }
+
+            .table-container {
+                padding: 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .main-table {
+                font-size: 0.85em;
+                min-width: 700px;
+            }
+
+            .main-table th {
+                padding: 12px 8px;
+                font-size: 0.85em;
+            }
+
+            .main-table td {
+                padding: 10px 8px;
+                font-size: 0.85em;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+                max-height: 85vh;
+            }
+
+            .modal-header h2 {
+                font-size: 1.3em;
+            }
+
+            .form-group input,
+            .form-group select {
+                padding: 10px;
+                font-size: 0.9em;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9em;
+            }
+
+            .delete-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .delete-item-btn {
+                width: 100%;
+            }
+
+            .year-group-title {
+                font-size: 0.95em;
+            }
+        }
+
+        /* تحسينات للهواتف الصغيرة */
+        @media (max-width: 480px) {
+            body {
+                padding-top: 100px;
+            }
+
+            .header h1 {
+                font-size: 1.1em;
+            }
+
+            .top-bar-btn {
+                font-size: 0.8em;
+                padding: 8px 12px;
+            }
+
+            .main-table {
+                font-size: 0.75em;
+                min-width: 600px;
+            }
+
+            .main-table th,
+            .main-table td {
+                padding: 8px 6px;
+                font-size: 0.75em;
+            }
+
+            .modal-content {
+                padding: 15px;
+            }
+
+            .month-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .month-edit-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="ahlia.jpg" alt="شعار المدرسة" class="header-logo">
+            <div class="header-content">
+                <h1>نظام الغيابات للمدرسة الأهلية الخيرية</h1>
+            </div>
+        </div>
+
+
+        <div class="top-bar">
+            <div class="top-bar-buttons">
+                <button class="top-bar-btn delete-btn-small" onclick="openDeleteModal()">
+                    حذف
+                </button>
+                <button class="top-bar-btn add-month-btn" onclick="openAddMonthModal()">
+                    ➕ إضافة شهر
+                </button>
+                <button class="top-bar-btn add-btn" onclick="openAddModal()">
+                    ➕ إضافة
+                </button>
+                <button class="top-bar-btn print-btn" onclick="downloadWord()">
+                    📄 تنزيل Word
+                </button>
+            </div>
+        </div>
+
+        <div class="modal" id="addMonthModal">
+            <div class="modal-content">
+                <button class="modal-close" onclick="closeAddMonthModal()">&times;</button>
+                <div class="modal-header">
+                    <h2>إضافة شهر جديد</h2>
+                </div>
+                <div class="form-group">
+                    <label>اختر الشهر:</label>
+                    <select id="newMonthSelect">
+                        <option value="1">يناير</option>
+                        <option value="2">فبراير</option>
+                        <option value="3">مارس</option>
+                        <option value="4">أبريل</option>
+                        <option value="5">مايو</option>
+                        <option value="6">يونيو</option>
+                        <option value="7">يوليو</option>
+                        <option value="8">أغسطس</option>
+                        <option value="9">سبتمبر</option>
+                        <option value="10">أكتوبر</option>
+                        <option value="11">نوفمبر</option>
+                        <option value="12">ديسمبر</option>
+                    </select>
+                    <label style="margin-top: 20px;">السنة:</label>
+                    <input type="number" id="newYearInput" placeholder="السنة" min="2020" max="2100">
+                    <div id="addMonthError" style="display: none; margin-top: 15px; padding: 12px; background: #fee; color: #c0392b; border-radius: 8px; border-right: 4px solid #c0392b; font-weight: 600;"></div>
+                    <button class="btn btn-success" onclick="addMonth()" style="margin-top: 20px;">إضافة شهر</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="editAttendanceModal">
+            <div class="modal-content" style="max-width: 800px;">
+                <button class="modal-close" onclick="closeEditAttendanceModal()">&times;</button>
+                <div class="modal-header">
+                    <h2 id="editAttendanceTitle">تعديل الحضور</h2>
+                </div>
+                <div id="editAttendanceContent" style="max-height: 600px; overflow-y: auto;">
+                    <!-- سيتم ملؤها ديناميكياً -->
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="addModal">
+            <div class="modal-content">
+                <button class="modal-close" onclick="closeAddModal()">&times;</button>
+                <div class="modal-header">
+                    <h2>إضافة شعبة جديدة</h2>
+                </div>
+                <div class="form-group">
+                    <label>اختر الصف:</label>
+                    <select id="gradeSelect">
+                        <option value="5">الصف الخامس</option>
+                        <option value="6">الصف السادس</option>
+                        <option value="7">الصف السابع</option>
+                        <option value="8">الصف الثامن</option>
+                        <option value="9">الصف التاسع</option>
+                        <option value="10">الصف العاشر</option>
+                        <option value="11">الصف الحادي عشر</option>
+                        <option value="12">الصف الثاني عشر</option>
+                    </select>
+                    <label style="margin-top: 20px;">اسم الشعبة:</label>
+                    <input type="text" id="className" placeholder="مثل: أ، ب، ج">
+                    <label style="margin-top: 20px;">عدد الطلاب:</label>
+                    <input type="number" id="studentCount" placeholder="عدد الطلاب" min="1">
+                    
+                    <label style="margin-top: 20px;">أضف للشهور:</label>
+                    <select id="addToMonths" onchange="toggleAddToOptions()" style="margin-top: 10px;">
+                        <option value="current">الشهر الحالي فقط</option>
+                        <option value="all">جميع الشهور</option>
+                        <option value="month">شهر معين</option>
+                        <option value="year">سنة معينة</option>
+                    </select>
+                    
+                    <div id="addToMonthOptions" style="display: none; margin-top: 15px;">
+                        <label>اختر الشهر:</label>
+                        <select id="addToMonthSelect">
+                            <option value="1">يناير</option>
+                            <option value="2">فبراير</option>
+                            <option value="3">مارس</option>
+                            <option value="4">أبريل</option>
+                            <option value="5">مايو</option>
+                            <option value="6">يونيو</option>
+                            <option value="7">يوليو</option>
+                            <option value="8">أغسطس</option>
+                            <option value="9">سبتمبر</option>
+                            <option value="10">أكتوبر</option>
+                            <option value="11">نوفمبر</option>
+                            <option value="12">ديسمبر</option>
+                        </select>
+                        <label style="margin-top: 15px;">السنة:</label>
+                        <input type="number" id="addToMonthYear" placeholder="السنة" min="2020" max="2100">
+                    </div>
+                    
+                    <div id="addToYearOptions" style="display: none; margin-top: 15px;">
+                        <label>السنة:</label>
+                        <input type="number" id="addToYear" placeholder="السنة" min="2020" max="2100">
+                    </div>
+                    
+                    <div id="addClassError" style="display: none; margin-top: 15px; padding: 12px; background: #fee; color: #c0392b; border-radius: 8px; border-right: 4px solid #c0392b; font-weight: 600;"></div>
+                    <div id="addClassSuccess" style="display: none; margin-top: 15px; padding: 12px; background: #d4edda; color: #155724; border-radius: 8px; border-right: 4px solid #27ae60; font-weight: 600;"></div>
+                    <button class="btn btn-success" onclick="addClass()" style="margin-top: 20px;">إضافة شعبة</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="deleteModal">
+            <div class="modal-content">
+                <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+                <div class="modal-header">
+                    <h2>🗑️ حذف صف أو شعبة</h2>
+                </div>
+                <div id="deleteItemsList" style="max-height: 500px; overflow-y: auto;">
+                    <!-- سيتم إضافة العناصر القابلة للحذف هنا -->
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content-wrapper">
+            <div class="months-sidebar">
+                <h3>الشهور المضافة</h3>
+                <div id="monthsList">
+                    <!-- سيتم ملؤها ديناميكياً -->
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <div class="table-header-info" id="tableHeaderInfo">
+                    <h3>بيانات الحضور والغياب لشهر <span id="selectedMonthName"></span> <span id="selectedYear"></span></h3>
+                </div>
+
+                <div class="table-container">
+            <table class="main-table" id="mainTable">
+                <thead>
+                    <tr>
+                        <th>الصف</th>
+                        <th>الشعبة</th>
+                        <th>عدد الطلاب</th>
+                        <th>الحضور</th>
+                        <th>إجمالي الغياب</th>
+                        <th>نسبة الحضور</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 40px; color: #999;">
+                            لا توجد بيانات. قم بإضافة صف وشعبة للبدء.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // البيانات المخزنة محلياً
+        let schoolData = {
+            grades: {},
+            months: {}
+        };
+
+        // معرف الشهر الحالي المعروض
+        let currentMonthId = null;
+
+        // إنشاء معرف الشهر
+        function getMonthId(year, month) {
+            return `${year}-${month}`;
+        }
+
+        // الحصول على اسم الشهر بالعربية
+        function getMonthName(month) {
+            const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
+                               'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+            return monthNames[month - 1];
+        }
+
+        // تحديث عنوان الجدول
+        function updateTableHeader() {
+            if (!currentMonthId || !schoolData.months[currentMonthId]) {
+                document.getElementById('selectedMonthName').textContent = '-';
+                document.getElementById('selectedYear').textContent = '-';
+                return;
+            }
+            
+            const monthData = schoolData.months[currentMonthId];
+            document.getElementById('selectedMonthName').textContent = getMonthName(monthData.month);
+            document.getElementById('selectedYear').textContent = monthData.year;
+        }
+
+        // إضافة شهر جديد
+        function addMonth() {
+            const month = parseInt(document.getElementById('newMonthSelect').value);
+            const year = parseInt(document.getElementById('newYearInput').value);
+            const errorDiv = document.getElementById('addMonthError');
+            
+            errorDiv.style.display = 'none';
+            
+            if (!year || year < 2020 || year > 2100) {
+                errorDiv.textContent = 'الرجاء إدخال سنة صحيحة بين 2020 و 2100';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            const monthId = getMonthId(year, month);
+            
+            if (schoolData.months[monthId]) {
+                errorDiv.textContent = 'هذا الشهر موجود بالفعل';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            // إنشاء بيانات الشهر الجديد مع جميع الصفوف والشعبات والحضور = 0
+            const monthData = {
+                year: year,
+                month: month,
+                attendance: {}
+            };
+            
+            // نسخ هيكل الصفوف والشعبات مع الحضور = 0
+            for (const gradeNum in schoolData.grades) {
+                monthData.attendance[gradeNum] = {};
+                for (const className in schoolData.grades[gradeNum].classes) {
+                    monthData.attendance[gradeNum][className] = {
+                        presentCount: 0
+                    };
+                }
+            }
+            
+            schoolData.months[monthId] = monthData;
+            saveData();
+            renderMonthsList();
+            
+            // تعيين الشهر الجديد كالشهر الحالي
+            currentMonthId = monthId;
+            updateTableHeader();
+            render();
+            
+            // إغلاق النافذة ومسح الحقول
+            closeAddMonthModal();
+            document.getElementById('newYearInput').value = '';
+        }
+
+        // فتح نافذة إضافة شهر
+        function openAddMonthModal() {
+            document.getElementById('addMonthModal').classList.add('active');
+            document.getElementById('addMonthError').style.display = 'none';
+            const now = new Date();
+            document.getElementById('newMonthSelect').value = now.getMonth() + 1;
+            document.getElementById('newYearInput').value = now.getFullYear();
+        }
+
+        // إغلاق نافذة إضافة شهر
+        function closeAddMonthModal() {
+            document.getElementById('addMonthModal').classList.remove('active');
+        }
+
+        // عرض قائمة الشهور في الـ sidebar
+        function renderMonthsList() {
+            const monthsList = document.getElementById('monthsList');
+            monthsList.innerHTML = '';
+            
+            if (Object.keys(schoolData.months).length === 0) {
+                monthsList.innerHTML = '<p style="text-align: center; color: #5f6368; padding: 20px;">لا توجد شهور مضافة</p>';
+                return;
+            }
+            
+            // تجميع الشهور حسب السنة
+            const monthsByYear = {};
+            Object.keys(schoolData.months).forEach(monthId => {
+                const monthData = schoolData.months[monthId];
+                const year = monthData.year;
+                if (!monthsByYear[year]) {
+                    monthsByYear[year] = [];
+                }
+                monthsByYear[year].push({ monthId, month: monthData.month });
+            });
+            
+            // ترتيب السنوات من الأحدث للأقدم
+            const sortedYears = Object.keys(monthsByYear).sort((a, b) => parseInt(b) - parseInt(a));
+            
+            sortedYears.forEach(year => {
+                // إنشاء مجموعة السنة القابلة للطي
+                const yearGroup = document.createElement('div');
+                yearGroup.className = 'year-group';
+                yearGroup.setAttribute('data-year', year);
+                
+                // رأس السنة (قابل للضغط)
+                const yearHeader = document.createElement('div');
+                yearHeader.className = 'year-group-header';
+                yearHeader.innerHTML = `
+                    <span class="year-group-title">${year}</span>
+                    <span class="year-group-toggle">▶</span>
+                `;
+                yearHeader.onclick = () => {
+                    yearGroup.classList.toggle('expanded');
+                };
+                
+                // قائمة الشهور (مخفية افتراضياً)
+                const monthsContainer = document.createElement('div');
+                monthsContainer.className = 'year-group-months';
+                
+                // ترتيب الشهور في السنة من الأحدث للأقدم
+                monthsByYear[year].sort((a, b) => b.month - a.month);
+                
+                monthsByYear[year].forEach(({ monthId, month }) => {
+                    const monthItem = document.createElement('div');
+                    monthItem.className = `month-item ${monthId === currentMonthId ? 'active' : ''}`;
+                    monthItem.onclick = (e) => {
+                        // إذا لم يكن الضغط على زر التعديل، اختر الشهر
+                        if (!e.target.classList.contains('month-edit-btn')) {
+                            selectMonth(monthId);
+                        }
+                    };
+                    monthItem.innerHTML = `
+                        <span class="month-item-name">${getMonthName(month)} ${month}</span>
+                        <button class="month-edit-btn" onclick="event.stopPropagation(); openEditAttendanceModal('${monthId}')">تعديل</button>
+                    `;
+                    monthsContainer.appendChild(monthItem);
+                });
+                
+                yearGroup.appendChild(yearHeader);
+                yearGroup.appendChild(monthsContainer);
+                monthsList.appendChild(yearGroup);
+            });
+        }
+
+        // اختيار شهر للعرض
+        function selectMonth(monthId) {
+            currentMonthId = monthId;
+            saveData();
+            updateTableHeader();
+            render();
+            renderMonthsList();
+        }
+
+        // فتح نافذة تعديل الحضور
+        function openEditAttendanceModal(monthId) {
+            if (!schoolData.months[monthId]) return;
+            
+            const monthData = schoolData.months[monthId];
+            document.getElementById('editAttendanceTitle').textContent = `تعديل الحضور - ${getMonthName(monthData.month)} ${monthData.year}`;
+            
+            const content = document.getElementById('editAttendanceContent');
+            content.innerHTML = '';
+            
+            const sortedGrades = Object.keys(schoolData.grades).sort((a, b) => parseInt(a) - parseInt(b));
+            
+            sortedGrades.forEach(gradeNum => {
+                const gradeData = schoolData.grades[gradeNum];
+                const gradeName = getGradeName(gradeNum);
+                const classNames = Object.keys(gradeData.classes).sort();
+                
+                classNames.forEach(className => {
+                    const classData = gradeData.classes[className];
+                    const attendance = monthData.attendance[gradeNum]?.[className] || { presentCount: 0 };
+                    const presentCount = attendance.presentCount || 0;
+                    
+                    const classDiv = document.createElement('div');
+                    classDiv.style.cssText = 'background: white; padding: 15px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #dadce0;';
+                    classDiv.innerHTML = `
+                        <div style="margin-bottom: 10px;">
+                            <strong>${gradeName} - ${className}</strong>
+                            <span style="color: #5f6368; margin-right: 10px;">(عدد الطلاب: ${classData.studentCount})</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label>عدد الحاضرين:</label>
+                            <input type="number" id="edit_present_${monthId}_${gradeNum}_${className}" 
+                                   value="${presentCount}" 
+                                   min="0" 
+                                   max="${classData.studentCount}"
+                                   style="width: 100px; padding: 8px; border: 1px solid #dadce0; border-radius: 4px;">
+                            <span style="color: #5f6368;">/ ${classData.studentCount}</span>
+                        </div>
+                    `;
+                    content.appendChild(classDiv);
+                });
+            });
+            
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'btn btn-success';
+            saveBtn.textContent = 'حفظ التعديلات';
+            saveBtn.style.cssText = 'width: 100%; margin-top: 20px;';
+            saveBtn.onclick = () => saveAttendanceEdits(monthId);
+            content.appendChild(saveBtn);
+            
+            document.getElementById('editAttendanceModal').classList.add('active');
+        }
+
+        // حفظ تعديلات الحضور
+        function saveAttendanceEdits(monthId) {
+            if (!schoolData.months[monthId]) return;
+            
+            const monthData = schoolData.months[monthId];
+            let hasChanges = false;
+            
+            for (const gradeNum in schoolData.grades) {
+                if (!monthData.attendance[gradeNum]) {
+                    monthData.attendance[gradeNum] = {};
+                }
+                
+                for (const className in schoolData.grades[gradeNum].classes) {
+                    const classData = schoolData.grades[gradeNum].classes[className];
+                    const input = document.getElementById(`edit_present_${monthId}_${gradeNum}_${className}`);
+                    
+                    if (input) {
+                        let presentCount = parseInt(input.value) || 0;
+                        presentCount = Math.max(0, Math.min(presentCount, classData.studentCount));
+                        
+                        if (!monthData.attendance[gradeNum][className]) {
+                            monthData.attendance[gradeNum][className] = {};
+                        }
+                        
+                        monthData.attendance[gradeNum][className].presentCount = presentCount;
+                        hasChanges = true;
+                    }
+                }
+            }
+            
+            if (hasChanges) {
+                saveData();
+                render();
+                closeEditAttendanceModal();
+            }
+        }
+
+        // إغلاق نافذة تعديل الحضور
+        function closeEditAttendanceModal() {
+            document.getElementById('editAttendanceModal').classList.remove('active');
+        }
+
+        // تحميل البيانات من localStorage
+        function loadData() {
+            const saved = localStorage.getItem('schoolAbsenceData');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                schoolData = parsed;
+                
+                // التأكد من وجود months
+                if (!schoolData.months) {
+                    schoolData.months = {};
+                }
+            }
+            
+            // تحميل الشهر الحالي المحفوظ
+            const savedCurrentMonth = localStorage.getItem('currentMonthId');
+            if (savedCurrentMonth && schoolData.months[savedCurrentMonth]) {
+                currentMonthId = savedCurrentMonth;
+            }
+            
+            renderMonthsList();
+            
+            // تعيين أول شهر كالشهر الحالي إذا لم يكن هناك شهر محدد
+            if (!currentMonthId && Object.keys(schoolData.months).length > 0) {
+                const firstMonth = Object.keys(schoolData.months).sort()[0];
+                currentMonthId = firstMonth;
+            }
+            
+            updateTableHeader();
+            render();
+        }
+
+        // حفظ البيانات في localStorage
+        function saveData() {
+            localStorage.setItem('schoolAbsenceData', JSON.stringify(schoolData));
+            if (currentMonthId) {
+                localStorage.setItem('currentMonthId', currentMonthId);
+            }
+            render();
+        }
+
+        // تنزيل ملف Word للشهر والسنة الحاليين
+        function downloadWord() {
+            if (!currentMonthId || !schoolData.months[currentMonthId]) {
+                alert('لا يوجد شهر محدد للتنزيل');
+                return;
+            }
+            
+            const monthData = schoolData.months[currentMonthId];
+            const monthName = getMonthName(monthData.month);
+            const year = monthData.year;
+            
+            // محاولة تحويل صورة الشعار إلى base64
+            const logoImg = document.querySelector('.header-logo');
+            
+            if (logoImg && logoImg.src) {
+                // استخدام fetch لتحميل الصورة وتحويلها إلى base64
+                fetch(logoImg.src)
+                    .then(response => response.blob())
+                    .then(blob => {
+                        const reader = new FileReader();
+                        reader.onloadend = function() {
+                            const logoBase64 = reader.result;
+                            createWordFile(monthName, year, logoBase64);
+                        };
+                        reader.onerror = function() {
+                            createWordFile(monthName, year, '');
+                        };
+                        reader.readAsDataURL(blob);
+                    })
+                    .catch(() => {
+                        // إذا فشل، استخدم مسار الصورة مباشرة
+                        createWordFile(monthName, year, logoImg.src);
+                    });
+            } else {
+                createWordFile(monthName, year, '');
+            }
+        }
+        
+        function createWordFile(monthName, year, logoSrc) {
+            // نسخ الجدول وتصغيره
+            const table = document.getElementById('mainTable').cloneNode(true);
+            const allCells = table.querySelectorAll('th, td');
+            allCells.forEach(cell => {
+                cell.style.fontSize = '8pt';
+                cell.style.padding = '4px';
+            });
+            
+            const logoHtml = logoSrc ? `<img src="${logoSrc}" style="height: 60px; margin-bottom: 10px;" alt="شعار المدرسة" />` : '';
+            
+            // إنشاء محتوى HTML للـ Word
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head>
+                    <meta charset='utf-8'>
+                    <title>بيانات الحضور والغياب - ${monthName} ${year}</title>
+                    <!--[if gte mso 9]>
+                    <xml>
+                        <w:WordDocument>
+                            <w:View>Print</w:View>
+                            <w:Zoom>FitPage</w:Zoom>
+                            <w:DoNotOptimizeForBrowser/>
+                        </w:WordDocument>
+                    </xml>
+                    <![endif]-->
+                    <style>
+                        @page {
+                            size: A4;
+                            margin: 1cm 1.5cm;
+                        }
+                        body {
+                            font-family: 'Arial', 'Tahoma', sans-serif;
+                            direction: rtl;
+                            text-align: right;
+                            padding: 0;
+                            margin: 0;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 15px;
+                            padding-bottom: 10px;
+                            border-bottom: 2px solid #000;
+                        }
+                        .header img {
+                            height: 60px;
+                            margin-bottom: 8px;
+                        }
+                        .header h1 {
+                            margin: 5px 0;
+                            font-size: 16pt;
+                            color: #000;
+                            font-weight: bold;
+                        }
+                        .header h2 {
+                            margin: 5px 0 0 0;
+                            font-size: 14pt;
+                            color: #333;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-top: 10px;
+                            direction: rtl;
+                            font-size: 8pt;
+                        }
+                        th, td {
+                            border: 1px solid #000;
+                            padding: 3px 5px;
+                            text-align: right;
+                            font-size: 8pt;
+                            line-height: 1.2;
+                        }
+                        th {
+                            background-color: #f0f0f0;
+                            font-weight: bold;
+                            font-size: 8pt;
+                        }
+                        tr {
+                            page-break-inside: avoid;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        ${logoHtml}
+                        <h1>نظام الغيابات للمدرسة الأهلية الخيرية</h1>
+                        <h2>بيانات الحضور والغياب لشهر ${monthName} ${year}</h2>
+                    </div>
+                    ${table.outerHTML}
+                </body>
+                </html>
+            `;
+            
+            // إنشاء blob وملف للتنزيل
+            const blob = new Blob(['\ufeff', htmlContent], {
+                type: 'application/msword'
+            });
+            
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `بيانات_الحضور_والغياب_${monthName}_${year}.doc`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // تبديل خيارات الإضافة للشهور
+        function toggleAddToOptions() {
+            const addToMonths = document.getElementById('addToMonths').value;
+            const monthOptions = document.getElementById('addToMonthOptions');
+            const yearOptions = document.getElementById('addToYearOptions');
+            
+            monthOptions.style.display = 'none';
+            yearOptions.style.display = 'none';
+            
+            if (addToMonths === 'month') {
+                monthOptions.style.display = 'block';
+            } else if (addToMonths === 'year') {
+                yearOptions.style.display = 'block';
+            }
+        }
+
+        // فتح النافذة المنبثقة
+        function openAddModal() {
+            document.getElementById('addModal').classList.add('active');
+            // إخفاء رسائل الخطأ والنجاح عند فتح النافذة
+            const errorDiv = document.getElementById('addClassError');
+            const successDiv = document.getElementById('addClassSuccess');
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+            }
+            if (successDiv) {
+                successDiv.style.display = 'none';
+            }
+            // إعادة تعيين خيارات الإضافة
+            document.getElementById('addToMonths').value = 'current';
+            toggleAddToOptions();
+        }
+
+        // إغلاق النافذة المنبثقة
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('active');
+        }
+
+        // إضافة شعبة جديدة (يتم إنشاء الصف تلقائياً إذا لم يكن موجوداً)
+        function addClass() {
+            const gradeNum = document.getElementById('gradeSelect').value;
+            const className = document.getElementById('className').value.trim();
+            const studentCount = parseInt(document.getElementById('studentCount').value);
+            const errorDiv = document.getElementById('addClassError');
+            const successDiv = document.getElementById('addClassSuccess');
+
+            // إخفاء رسائل الخطأ والنجاح
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            if (!gradeNum || !className || !studentCount || studentCount < 1) {
+                errorDiv.textContent = 'الرجاء إدخال جميع البيانات بشكل صحيح!';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            // إنشاء الصف تلقائياً إذا لم يكن موجوداً
+            if (!schoolData.grades[gradeNum]) {
+                schoolData.grades[gradeNum] = { classes: {} };
+            }
+
+            // التحقق من وجود الشعبة بنفس الاسم في نفس الصف
+            if (schoolData.grades[gradeNum].classes[className]) {
+                const gradeName = getGradeName(gradeNum);
+                errorDiv.textContent = `الشعبة "${className}" موجودة بالفعل في الصف ${gradeName}!`;
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            // إضافة الشعبة
+            schoolData.grades[gradeNum].classes[className] = {
+                studentCount: studentCount
+            };
+
+            // تحديد الشهور التي سيتم إضافة الشعبة لها
+            const addToMonths = document.getElementById('addToMonths').value;
+            let targetMonths = [];
+
+            if (addToMonths === 'current') {
+                // الشهر الحالي فقط
+                if (currentMonthId && schoolData.months[currentMonthId]) {
+                    targetMonths = [currentMonthId];
+                } else {
+                    errorDiv.textContent = 'لا يوجد شهر محدد حالياً. يرجى اختيار شهر أولاً أو إضافة للكل.';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+            } else if (addToMonths === 'all') {
+                // جميع الشهور
+                targetMonths = Object.keys(schoolData.months);
+            } else if (addToMonths === 'month') {
+                // شهر معين
+                const month = parseInt(document.getElementById('addToMonthSelect').value);
+                const year = parseInt(document.getElementById('addToMonthYear').value);
+                
+                if (!year || year < 2020 || year > 2100) {
+                    errorDiv.textContent = 'الرجاء إدخال سنة صحيحة بين 2020 و 2100';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+                
+                const monthId = getMonthId(year, month);
+                if (schoolData.months[monthId]) {
+                    targetMonths = [monthId];
+                } else {
+                    errorDiv.textContent = `الشهر المحدد (${getMonthName(month)} ${year}) غير موجود. يرجى إضافته أولاً.`;
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+            } else if (addToMonths === 'year') {
+                // سنة معينة
+                const year = parseInt(document.getElementById('addToYear').value);
+                
+                if (!year || year < 2020 || year > 2100) {
+                    errorDiv.textContent = 'الرجاء إدخال سنة صحيحة بين 2020 و 2100';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+                
+                // إيجاد جميع الشهور في السنة المحددة
+                for (const monthId in schoolData.months) {
+                    if (schoolData.months[monthId].year === year) {
+                        targetMonths.push(monthId);
+                    }
+                }
+                
+                if (targetMonths.length === 0) {
+                    errorDiv.textContent = `لا توجد شهور مضافة للسنة ${year}`;
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+            }
+
+            // إضافة الشعبة للشهور المحددة
+            targetMonths.forEach(monthId => {
+                const monthData = schoolData.months[monthId];
+                if (!monthData.attendance[gradeNum]) {
+                    monthData.attendance[gradeNum] = {};
+                }
+                monthData.attendance[gradeNum][className] = {
+                    presentCount: 0
+                };
+            });
+
+            const gradeName = getGradeName(gradeNum);
+            
+            // إظهار رسالة النجاح
+            let successMessage = `✓ تم إضافة الشعبة "${className}" في الصف ${gradeName} بنجاح!`;
+            if (addToMonths === 'current') {
+                const monthData = schoolData.months[currentMonthId];
+                successMessage += `\nتمت الإضافة للشهر: ${getMonthName(monthData.month)} ${monthData.year}`;
+            } else if (addToMonths === 'all') {
+                successMessage += `\nتمت الإضافة لجميع الشهور (${targetMonths.length} شهر)`;
+            } else if (addToMonths === 'month') {
+                const monthData = schoolData.months[targetMonths[0]];
+                successMessage += `\nتمت الإضافة للشهر: ${getMonthName(monthData.month)} ${monthData.year}`;
+            } else if (addToMonths === 'year') {
+                const year = parseInt(document.getElementById('addToYear').value);
+                successMessage += `\nتمت الإضافة لجميع شهور السنة ${year} (${targetMonths.length} شهر)`;
+            }
+            
+            successDiv.textContent = successMessage;
+            successDiv.style.display = 'block';
+
+            // مسح الحقول
+            document.getElementById('className').value = '';
+            document.getElementById('studentCount').value = '';
+            
+            saveData();
+            renderMonthsList();
+            render();
+            // لا نغلق النافذة - تبقى مفتوحة لإضافة المزيد من الشعبات
+        }
+
+
+        // حساب إجمالي الغياب لشعبة
+        function getClassAbsences(gradeNum, className) {
+            if (!currentMonthId || !schoolData.months[currentMonthId]) {
+                return 0;
+            }
+            
+            const classData = schoolData.grades[gradeNum].classes[className];
+            const monthData = schoolData.months[currentMonthId];
+            const attendance = monthData.attendance[gradeNum]?.[className] || { presentCount: 0 };
+            const presentCount = attendance.presentCount || 0;
+            
+            // الغياب = عدد الطلاب - عدد الحاضرين
+            return Math.max(0, classData.studentCount - presentCount);
+        }
+
+        // حساب إجمالي الغياب لصف
+        function getGradeAbsences(gradeNum) {
+            let total = 0;
+            if (schoolData.grades[gradeNum]) {
+                for (const className in schoolData.grades[gradeNum].classes) {
+                    total += getClassAbsences(gradeNum, className);
+                }
+            }
+            return total;
+        }
+
+        // حساب إجمالي الغياب للمدرسة
+        function getTotalAbsences() {
+            let total = 0;
+            for (const gradeNum in schoolData.grades) {
+                total += getGradeAbsences(gradeNum);
+            }
+            return total;
+        }
+
+        // حساب عدد الحاضرين لشعبة
+        function getClassPresentCount(gradeNum, className) {
+            if (!currentMonthId || !schoolData.months[currentMonthId]) {
+                return 0;
+            }
+            
+            const monthData = schoolData.months[currentMonthId];
+            const attendance = monthData.attendance[gradeNum]?.[className] || { presentCount: 0 };
+            return attendance.presentCount || 0;
+        }
+
+        // حساب عدد الحاضرين لصف (لليوم الحالي)
+        function getGradePresentCount(gradeNum) {
+            let total = 0;
+            if (schoolData.grades[gradeNum]) {
+                for (const className in schoolData.grades[gradeNum].classes) {
+                    total += getClassPresentCount(gradeNum, className);
+                }
+            }
+            return total;
+        }
+
+        // حساب عدد الحاضرين للمدرسة (لليوم الحالي)
+        function getTotalPresentCount() {
+            let total = 0;
+            for (const gradeNum in schoolData.grades) {
+                total += getGradePresentCount(gradeNum);
+            }
+            return total;
+        }
+
+        // حساب نسبة الحضور لشعبة (%)
+        function getClassAttendanceRate(gradeNum, className) {
+            const classData = schoolData.grades[gradeNum].classes[className];
+            const totalStudents = classData.studentCount;
+            
+            if (totalStudents === 0) return 100;
+            
+            const presentCount = getClassPresentCount(gradeNum, className);
+            return Math.round((presentCount / totalStudents) * 100);
+        }
+
+        // حساب نسبة الحضور لصف (%)
+        function getGradeAttendanceRate(gradeNum) {
+            const gradeData = schoolData.grades[gradeNum];
+            let totalStudents = 0;
+            let totalPresent = 0;
+            
+            for (const className in gradeData.classes) {
+                const classData = gradeData.classes[className];
+                totalStudents += classData.studentCount;
+                totalPresent += getClassPresentCount(gradeNum, className);
+            }
+            
+            if (totalStudents === 0) return 100;
+            
+            return Math.round((totalPresent / totalStudents) * 100);
+        }
+
+        // حساب نسبة الحضور الإجمالية للمدرسة (%)
+        function getTotalAttendanceRate() {
+            let totalStudents = 0;
+            let totalPresent = 0;
+            
+            for (const gradeNum in schoolData.grades) {
+                const gradeData = schoolData.grades[gradeNum];
+                for (const className in gradeData.classes) {
+                    const classData = gradeData.classes[className];
+                    totalStudents += classData.studentCount;
+                    totalPresent += getClassPresentCount(gradeNum, className);
+                }
+            }
+            
+            if (totalStudents === 0) return 100;
+            
+            return Math.round((totalPresent / totalStudents) * 100);
+        }
+
+        // حذف صف أو شعبة
+        function deleteGradeFunc(gradeNum) {
+            if (!confirm('هل أنت متأكد من حذف هذا الصف؟ سيتم حذف جميع شعباته أيضاً.')) {
+                return;
+            }
+            
+            delete schoolData.grades[gradeNum];
+            
+            // حذف الصف من جميع الشهور
+            for (const monthId in schoolData.months) {
+                delete schoolData.months[monthId].attendance[gradeNum];
+            }
+            
+            saveData();
+            renderMonthsList();
+            render();
+        }
+
+        function deleteClassFunc(gradeNum, className) {
+            delete schoolData.grades[gradeNum].classes[className];
+            if (Object.keys(schoolData.grades[gradeNum].classes).length === 0) {
+                delete schoolData.grades[gradeNum];
+            }
+            
+            // حذف الشعبة من جميع الشهور
+            for (const monthId in schoolData.months) {
+                if (schoolData.months[monthId].attendance[gradeNum]) {
+                    delete schoolData.months[monthId].attendance[gradeNum][className];
+                }
+            }
+            
+            saveData();
+            renderMonthsList();
+            render();
+        }
+
+        function deleteMonthFunc(monthId) {
+            if (!confirm('هل أنت متأكد من حذف هذا الشهر؟')) {
+                return;
+            }
+            
+            delete schoolData.months[monthId];
+            
+            // إذا كان الشهر المحذوف هو الشهر الحالي، اختر شهر آخر أو اتركه فارغاً
+            if (currentMonthId === monthId) {
+                const remainingMonths = Object.keys(schoolData.months);
+                if (remainingMonths.length > 0) {
+                    currentMonthId = remainingMonths[0];
+                } else {
+                    currentMonthId = null;
+                }
+            }
+            
+            saveData();
+            renderMonthsList();
+            updateTableHeader();
+            render();
+        }
+
+
+        // تحويل رقم الصف إلى اسم عربي
+        function getGradeName(gradeNum) {
+            const gradeNames = {
+                '5': 'الخامس',
+                '6': 'السادس',
+                '7': 'السابع',
+                '8': 'الثامن',
+                '9': 'التاسع',
+                '10': 'العاشر',
+                '11': 'الحادي عشر',
+                '12': 'الثاني عشر'
+            };
+            return gradeNames[gradeNum] || gradeNum;
+        }
+
+        // فتح نافذة الحذف
+        function openDeleteModal() {
+            renderDeleteItems();
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        // إغلاق نافذة الحذف
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+        }
+
+
+
+        // عرض العناصر القابلة للحذف في النافذة
+        function renderDeleteItems() {
+            const deleteItemsList = document.getElementById('deleteItemsList');
+            deleteItemsList.innerHTML = '';
+            
+            let hasItems = false;
+            
+            // قسم حذف الشهور (مجمعة حسب السنة)
+            if (Object.keys(schoolData.months).length > 0) {
+                const monthsTitle = document.createElement('h3');
+                monthsTitle.style.cssText = 'margin: 0 0 15px 0; color: #202124; font-size: 1.2em; font-weight: 600; padding-bottom: 10px; border-bottom: 2px solid #bdc1c6;';
+                monthsTitle.textContent = 'الشهور';
+                deleteItemsList.appendChild(monthsTitle);
+                
+                // تجميع الشهور حسب السنة
+                const monthsByYear = {};
+                Object.keys(schoolData.months).forEach(monthId => {
+                    const monthData = schoolData.months[monthId];
+                    const year = monthData.year;
+                    if (!monthsByYear[year]) {
+                        monthsByYear[year] = [];
+                    }
+                    monthsByYear[year].push({ monthId, month: monthData.month });
+                });
+                
+                // ترتيب السنوات من الأحدث للأقدم
+                const sortedYears = Object.keys(monthsByYear).sort((a, b) => parseInt(b) - parseInt(a));
+                
+                sortedYears.forEach(year => {
+                    // عنصر السنة القابل للطي
+                    const yearItem = document.createElement('div');
+                    yearItem.className = 'delete-year-item';
+                    yearItem.setAttribute('data-year', year);
+                    
+                    const yearHeader = document.createElement('div');
+                    yearHeader.className = 'delete-year-header';
+                    yearHeader.innerHTML = `
+                        <div class="delete-year-header-content">
+                            <h3>${year}</h3>
+                        </div>
+                        <span class="delete-year-toggle">▶</span>
+                    `;
+                    yearHeader.onclick = (e) => {
+                        if (!e.target.classList.contains('delete-item-btn')) {
+                            toggleYearMonths(year);
+                        }
+                    };
+                    
+                    const monthsList = document.createElement('div');
+                    monthsList.className = 'delete-months-list';
+                    
+                    // ترتيب الشهور في السنة من الأحدث للأقدم
+                    monthsByYear[year].sort((a, b) => b.month - a.month);
+                    
+                    monthsByYear[year].forEach(({ monthId, month }) => {
+                        const monthItem = document.createElement('div');
+                        monthItem.className = 'delete-month-item';
+                        monthItem.innerHTML = `
+                            <div class="delete-month-info">
+                                <h4>${getMonthName(month)} ${month}</h4>
+                            </div>
+                            <button class="delete-item-btn" onclick="event.stopPropagation(); deleteMonthFunc('${monthId}'); closeDeleteModal();">
+                                حذف الشهر
+                            </button>
+                        `;
+                        monthsList.appendChild(monthItem);
+                    });
+                    
+                    yearItem.appendChild(yearHeader);
+                    yearItem.appendChild(monthsList);
+                    deleteItemsList.appendChild(yearItem);
+                    hasItems = true;
+                });
+            }
+            
+            // قسم حذف الصفوف والشعبات
+            const sortedGrades = Object.keys(schoolData.grades).sort((a, b) => parseInt(a) - parseInt(b));
+            
+            if (sortedGrades.length > 0) {
+                const gradesTitle = document.createElement('h3');
+                gradesTitle.style.cssText = 'margin: 20px 0 15px 0; color: #202124; font-size: 1.2em; font-weight: 600; padding-top: 20px; padding-bottom: 10px; border-top: 2px solid #bdc1c6; border-bottom: 2px solid #bdc1c6;';
+                gradesTitle.textContent = 'الصفوف والشعبات';
+                deleteItemsList.appendChild(gradesTitle);
+                
+                sortedGrades.forEach(gradeNum => {
+                    const gradeData = schoolData.grades[gradeNum];
+                    const gradeClasses = Object.keys(gradeData.classes).length;
+                    let gradeStudents = 0;
+                    for (const className in gradeData.classes) {
+                        gradeStudents += gradeData.classes[className].studentCount;
+                    }
+                    
+                    // عنصر الصف القابل للطي
+                    const gradeItem = document.createElement('div');
+                    gradeItem.className = 'delete-grade-item';
+                    gradeItem.setAttribute('data-grade', gradeNum);
+                    
+                    const gradeHeader = document.createElement('div');
+                    gradeHeader.className = 'delete-grade-header';
+                    gradeHeader.innerHTML = `
+                        <div class="delete-grade-header-content">
+                            <h3>الصف ${getGradeName(gradeNum)}</h3>
+                            <p>${gradeClasses} شعبة | ${gradeStudents} طالب</p>
+                        </div>
+                        <span class="delete-grade-toggle">▶</span>
+                    `;
+                    gradeHeader.onclick = (e) => {
+                        if (!e.target.classList.contains('delete-item-btn')) {
+                            toggleGradeClasses(gradeNum);
+                        }
+                    };
+                    
+                    const classesList = document.createElement('div');
+                    classesList.className = 'delete-classes-list';
+                    
+                    // عناصر حذف الشعبات
+                    const classNames = Object.keys(gradeData.classes).sort();
+                    classNames.forEach(className => {
+                        const classData = gradeData.classes[className];
+                        const classItem = document.createElement('div');
+                        classItem.className = 'delete-class-item';
+                        classItem.innerHTML = `
+                            <div class="delete-class-info">
+                                <h4>شعبة ${className}</h4>
+                                <p>${classData.studentCount} طالب</p>
+                            </div>
+                            <button class="delete-item-btn" onclick="event.stopPropagation(); deleteClassFunc('${gradeNum}', '${className}'); closeDeleteModal();">
+                                حذف الشعبة
+                            </button>
+                        `;
+                        classesList.appendChild(classItem);
+                    });
+                    
+                    gradeItem.appendChild(gradeHeader);
+                    gradeItem.appendChild(classesList);
+                    deleteItemsList.appendChild(gradeItem);
+                    hasItems = true;
+                });
+            }
+            
+            if (!hasItems) {
+                deleteItemsList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">لا توجد عناصر للحذف</p>';
+            }
+        }
+
+        // تبديل عرض/إخفاء الشهور عند الضغط على السنة
+        function toggleYearMonths(year) {
+            const yearItem = document.querySelector(`.delete-year-item[data-year="${year}"]`);
+            if (yearItem) {
+                yearItem.classList.toggle('expanded');
+            }
+        }
+
+        // تبديل عرض/إخفاء الشعبات عند الضغط على الصف
+        function toggleGradeClasses(gradeNum) {
+            const gradeItem = document.querySelector(`.delete-grade-item[data-grade="${gradeNum}"]`);
+            if (gradeItem) {
+                gradeItem.classList.toggle('expanded');
+            }
+        }
+
+        // دالة قديمة للتوافق (لا تستخدم الآن)
+
+        // عرض البيانات
+        function render() {
+            // عرض الجدول
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+
+            const sortedGrades = Object.keys(schoolData.grades).sort((a, b) => parseInt(a) - parseInt(b));
+
+            if (sortedGrades.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #999;">
+لا توجد بيانات. قم بإضافة صف وشعبة للبدء.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            if (!currentMonthId || !schoolData.months[currentMonthId]) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #999;">
+لا يوجد شهر محدد. قم بإضافة شهر للبدء.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let totalSchoolAbsences = 0;
+            let totalSchoolStudents = 0;
+
+            sortedGrades.forEach(gradeNum => {
+                const gradeData = schoolData.grades[gradeNum];
+                const gradeAbsences = getGradeAbsences(gradeNum);
+                const gradeClasses = Object.keys(gradeData.classes).length;
+                let gradeStudents = 0;
+                for (const className in gradeData.classes) {
+                    gradeStudents += gradeData.classes[className].studentCount;
+                }
+
+                totalSchoolAbsences += gradeAbsences;
+                totalSchoolStudents += gradeStudents;
+
+                // صفوف الشعبات
+                const classNames = Object.keys(gradeData.classes).sort();
+                const gradeName = getGradeName(gradeNum);
+                const rowspan = classNames.length + 1; // عدد الشعبات + صف الإجمالي
+                
+                classNames.forEach((className, index) => {
+                    const classData = gradeData.classes[className];
+                    const classAbsences = getClassAbsences(gradeNum, className);
+                    const classAttendanceRate = getClassAttendanceRate(gradeNum, className);
+                    const classPresentCount = getClassPresentCount(gradeNum, className);
+
+                    const classRow = document.createElement('tr');
+                    classRow.className = 'class-row';
+                    
+                    // دمج خلية الصف فقط في أول صف
+                    if (index === 0) {
+                        classRow.innerHTML = `
+                            <td rowspan="${rowspan}" style="vertical-align: middle; font-weight: bold; font-size: 1.1em;">${gradeName}</td>
+                            <td>${className}</td>
+                            <td class="number-cell">${classData.studentCount}</td>
+                            <td class="number-cell" style="color: #34a853; font-weight: 500;">${classPresentCount}</td>
+                            <td class="number-cell">${classAbsences}</td>
+                            <td class="number-cell" style="color: ${classAttendanceRate >= 90 ? '#34a853' : classAttendanceRate >= 70 ? '#fbbc04' : '#ea4335'}; font-weight: 500;">${classAttendanceRate}%</td>
+                        `;
+                    } else {
+                        classRow.innerHTML = `
+                            <td>${className}</td>
+                            <td class="number-cell">${classData.studentCount}</td>
+                            <td class="number-cell" style="color: #34a853; font-weight: 500;">${classPresentCount}</td>
+                            <td class="number-cell">${classAbsences}</td>
+                            <td class="number-cell" style="color: ${classAttendanceRate >= 90 ? '#34a853' : classAttendanceRate >= 70 ? '#fbbc04' : '#ea4335'}; font-weight: 500;">${classAttendanceRate}%</td>
+                        `;
+                    }
+                    tableBody.appendChild(classRow);
+                });
+
+                // صف إجمالي الصف (بعد الشعبات)
+                const gradeAttendanceRate = getGradeAttendanceRate(gradeNum);
+                const gradePresentCount = getGradePresentCount(gradeNum);
+                const gradeRow = document.createElement('tr');
+                gradeRow.className = 'grade-row';
+                gradeRow.innerHTML = `
+                    <td style="font-weight: bold; font-size: 1.05em; text-align: right;">إجمالي الصف ${gradeName}</td>
+                    <td class="number-cell" style="font-weight: 600; color: #1a73e8; font-size: 1.05em;">${gradeStudents}</td>
+                    <td class="number-cell" style="color: #34a853; font-weight: 600; font-size: 1.05em;">${gradePresentCount}</td>
+                    <td class="number-cell" style="font-weight: 600; font-size: 1.05em;">${gradeAbsences}</td>
+                    <td class="number-cell" style="color: ${gradeAttendanceRate >= 90 ? '#34a853' : gradeAttendanceRate >= 70 ? '#fbbc04' : '#ea4335'}; font-weight: 600; font-size: 1.05em;">${gradeAttendanceRate}%</td>
+                `;
+                tableBody.appendChild(gradeRow);
+            });
+
+            // صف الإجمالي العام
+            const totalAttendanceRate = getTotalAttendanceRate();
+            const totalPresentCount = getTotalPresentCount();
+            const totalRow = document.createElement('tr');
+            totalRow.className = 'total-row';
+            totalRow.innerHTML = `
+                <td colspan="2" style="font-weight: bold; font-size: 1.3em;">إجمالي المدرسة</td>
+                <td class="total-number-cell" style="font-weight: 600; color: #1a73e8; font-size: 1.15em;">${totalSchoolStudents}</td>
+                <td class="total-number-cell" style="color: #34a853; font-weight: 600; font-size: 1.15em;">${totalPresentCount}</td>
+                <td class="total-number-cell" style="font-weight: 600; font-size: 1.15em;">${totalSchoolAbsences}</td>
+                <td class="total-number-cell" style="color: ${totalAttendanceRate >= 90 ? '#34a853' : totalAttendanceRate >= 70 ? '#fbbc04' : '#ea4335'}; font-weight: 600; font-size: 1.15em;">${totalAttendanceRate}%</td>
+            `;
+            tableBody.appendChild(totalRow);
+        }
+
+
+        // تحميل البيانات عند بدء التطبيق
+        loadData();
+    </script>
+</body>
+</html>
