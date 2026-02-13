@@ -1503,8 +1503,8 @@
                 <button class="top-bar-btn delete-btn-small" onclick="openDeleteModal()">
                     حذف
                 </button>
-                <button class="top-bar-btn add-month-btn" onclick="openAddMonthModal()">
-                    ➕ إضافة شهر
+                <button class="top-bar-btn add-month-btn" onclick="openAddDayModal()">
+                    ➕ إضافة يوم
                 </button>
                 <button class="top-bar-btn add-btn" onclick="openAddModal()">
                     ➕ إضافة
@@ -1515,32 +1515,17 @@
             </div>
         </div>
 
-        <div class="modal" id="addMonthModal">
+        <div class="modal" id="addDayModal">
             <div class="modal-content">
-                <button class="modal-close" onclick="closeAddMonthModal()">&times;</button>
+                <button class="modal-close" onclick="closeAddDayModal()">&times;</button>
                 <div class="modal-header">
-                    <h2>إضافة شهر جديد</h2>
+                    <h2>إضافة يوم جديد</h2>
                 </div>
                 <div class="form-group">
-                    <label>اختر الشهر:</label>
-                    <select id="newMonthSelect">
-                        <option value="1">يناير</option>
-                        <option value="2">فبراير</option>
-                        <option value="3">مارس</option>
-                        <option value="4">أبريل</option>
-                        <option value="5">مايو</option>
-                        <option value="6">يونيو</option>
-                        <option value="7">يوليو</option>
-                        <option value="8">أغسطس</option>
-                        <option value="9">سبتمبر</option>
-                        <option value="10">أكتوبر</option>
-                        <option value="11">نوفمبر</option>
-                        <option value="12">ديسمبر</option>
-                    </select>
-                    <label style="margin-top: 20px;">السنة:</label>
-                    <input type="number" id="newYearInput" placeholder="السنة" min="2020" max="2100">
-                    <div id="addMonthError" style="display: none; margin-top: 15px; padding: 12px; background: #fee; color: #c0392b; border-radius: 8px; border-right: 4px solid #c0392b; font-weight: 600;"></div>
-                    <button class="btn btn-success" onclick="addMonth()" style="margin-top: 20px;">إضافة شهر</button>
+                    <label>اختر التاريخ:</label>
+                    <input type="date" id="newDateInput" min="2020-01-01" max="2100-12-31">
+                    <div id="addDayError" style="display: none; margin-top: 15px; padding: 12px; background: #fee; color: #c0392b; border-radius: 8px; border-right: 4px solid #c0392b; font-weight: 600;"></div>
+                    <button class="btn btn-success" onclick="addDay()" style="margin-top: 20px;">إضافة يوم</button>
                 </div>
             </div>
         </div>
@@ -1580,10 +1565,10 @@
                     <label style="margin-top: 20px;">عدد الطلاب:</label>
                     <input type="number" id="studentCount" placeholder="عدد الطلاب" min="1">
                     
-                    <label style="margin-top: 20px;">أضف للشهور:</label>
+                    <label style="margin-top: 20px;">أضف للأيام:</label>
                     <select id="addToMonths" onchange="toggleAddToOptions()" style="margin-top: 10px;">
-                        <option value="current">الشهر الحالي فقط</option>
-                        <option value="all">جميع الشهور</option>
+                        <option value="current">اليوم الحالي فقط</option>
+                        <option value="all">جميع الأيام</option>
                         <option value="month">شهر معين</option>
                         <option value="year">سنة معينة</option>
                     </select>
@@ -1634,15 +1619,15 @@
 
         <div class="main-content-wrapper">
             <div class="months-sidebar">
-                <h3>الشهور المضافة</h3>
-                <div id="monthsList">
+                <h3>الأيام المضافة</h3>
+                <div id="daysList">
                     <!-- سيتم ملؤها ديناميكياً -->
                 </div>
             </div>
 
             <div class="table-wrapper">
                 <div class="table-header-info" id="tableHeaderInfo">
-                    <h3>بيانات الحضور والغياب لشهر <span id="selectedMonthName"></span> <span id="selectedYear"></span></h3>
+                    <h3 id="tableHeaderText">بيانات الحضور والغياب ليوم -</h3>
                 </div>
 
                 <div class="table-container">
@@ -1674,127 +1659,133 @@
         // البيانات المخزنة محلياً
         let schoolData = {
             grades: {},
-            months: {}
+            days: {}
         };
 
-        // معرف الشهر الحالي المعروض
-        let currentMonthId = null;
+        // معرف اليوم الحالي المعروض (بتنسيق YYYY-MM-DD)
+        let currentDayId = null;
 
-        // إنشاء معرف الشهر
-        function getMonthId(year, month) {
-            return `${year}-${month}`;
-        }
-
-        // الحصول على اسم الشهر بالعربية
-        function getMonthName(month) {
+        // تنسيق التاريخ للعرض
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const day = date.getDate();
+            const month = date.getMonth() + 1;
+            const year = date.getFullYear();
             const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
                                'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-            return monthNames[month - 1];
+            return `${day} ${monthNames[month - 1]} ${year}`;
         }
 
         // تحديث عنوان الجدول
         function updateTableHeader() {
-            if (!currentMonthId || !schoolData.months[currentMonthId]) {
-                document.getElementById('selectedMonthName').textContent = '-';
-                document.getElementById('selectedYear').textContent = '-';
+            const headerText = document.getElementById('tableHeaderText');
+            if (!currentDayId || !schoolData.days[currentDayId]) {
+                headerText.textContent = 'بيانات الحضور والغياب ليوم -';
                 return;
             }
             
-            const monthData = schoolData.months[currentMonthId];
-            document.getElementById('selectedMonthName').textContent = getMonthName(monthData.month);
-            document.getElementById('selectedYear').textContent = monthData.year;
+            const dayData = schoolData.days[currentDayId];
+            const formattedDate = formatDate(dayData.date);
+            headerText.textContent = `بيانات الحضور والغياب ليوم ${formattedDate}`;
         }
 
-        // إضافة شهر جديد
-        function addMonth() {
-            const month = parseInt(document.getElementById('newMonthSelect').value);
-            const year = parseInt(document.getElementById('newYearInput').value);
-            const errorDiv = document.getElementById('addMonthError');
+        // إضافة يوم جديد
+        function addDay() {
+            const dateString = document.getElementById('newDateInput').value;
+            const errorDiv = document.getElementById('addDayError');
             
             errorDiv.style.display = 'none';
             
-            if (!year || year < 2020 || year > 2100) {
-                errorDiv.textContent = 'الرجاء إدخال سنة صحيحة بين 2020 و 2100';
+            if (!dateString) {
+                errorDiv.textContent = 'الرجاء اختيار تاريخ';
                 errorDiv.style.display = 'block';
                 return;
             }
             
-            const monthId = getMonthId(year, month);
+            // استخدام التاريخ كمعرف (YYYY-MM-DD)
+            const dayId = dateString;
             
-            if (schoolData.months[monthId]) {
-                errorDiv.textContent = 'هذا الشهر موجود بالفعل';
+            if (schoolData.days[dayId]) {
+                errorDiv.textContent = 'هذا اليوم موجود بالفعل';
                 errorDiv.style.display = 'block';
                 return;
             }
             
-            // إنشاء بيانات الشهر الجديد مع جميع الصفوف والشعبات والحضور = 0
-            const monthData = {
-                year: year,
-                month: month,
+            // إنشاء بيانات اليوم الجديد مع جميع الصفوف والشعبات والحضور = 0
+            const dayData = {
+                date: dateString,
                 attendance: {}
             };
             
             // نسخ هيكل الصفوف والشعبات مع الحضور = 0
             for (const gradeNum in schoolData.grades) {
-                monthData.attendance[gradeNum] = {};
+                dayData.attendance[gradeNum] = {};
                 for (const className in schoolData.grades[gradeNum].classes) {
-                    monthData.attendance[gradeNum][className] = {
+                    dayData.attendance[gradeNum][className] = {
                         presentCount: 0
                     };
                 }
             }
             
-            schoolData.months[monthId] = monthData;
+            schoolData.days[dayId] = dayData;
             saveData();
-            renderMonthsList();
+            renderDaysList();
             
-            // تعيين الشهر الجديد كالشهر الحالي
-            currentMonthId = monthId;
+            // تعيين اليوم الجديد كاليوم الحالي
+            currentDayId = dayId;
             updateTableHeader();
             render();
             
             // إغلاق النافذة ومسح الحقول
-            closeAddMonthModal();
-            document.getElementById('newYearInput').value = '';
+            closeAddDayModal();
+            document.getElementById('newDateInput').value = '';
         }
 
-        // فتح نافذة إضافة شهر
-        function openAddMonthModal() {
-            document.getElementById('addMonthModal').classList.add('active');
-            document.getElementById('addMonthError').style.display = 'none';
+        // فتح نافذة إضافة يوم
+        function openAddDayModal() {
+            document.getElementById('addDayModal').classList.add('active');
+            document.getElementById('addDayError').style.display = 'none';
             const now = new Date();
-            document.getElementById('newMonthSelect').value = now.getMonth() + 1;
-            document.getElementById('newYearInput').value = now.getFullYear();
+            const today = now.toISOString().split('T')[0];
+            document.getElementById('newDateInput').value = today;
         }
 
-        // إغلاق نافذة إضافة شهر
-        function closeAddMonthModal() {
-            document.getElementById('addMonthModal').classList.remove('active');
+        // إغلاق نافذة إضافة يوم
+        function closeAddDayModal() {
+            document.getElementById('addDayModal').classList.remove('active');
         }
 
-        // عرض قائمة الشهور في الـ sidebar
-        function renderMonthsList() {
-            const monthsList = document.getElementById('monthsList');
-            monthsList.innerHTML = '';
+        // عرض قائمة الأيام في الـ sidebar
+        function renderDaysList() {
+            const daysList = document.getElementById('daysList');
+            daysList.innerHTML = '';
             
-            if (Object.keys(schoolData.months).length === 0) {
-                monthsList.innerHTML = '<p style="text-align: center; color: #5f6368; padding: 20px;">لا توجد شهور مضافة</p>';
+            if (Object.keys(schoolData.days).length === 0) {
+                daysList.innerHTML = '<p style="text-align: center; color: #5f6368; padding: 20px;">لا توجد أيام مضافة</p>';
                 return;
             }
             
-            // تجميع الشهور حسب السنة
-            const monthsByYear = {};
-            Object.keys(schoolData.months).forEach(monthId => {
-                const monthData = schoolData.months[monthId];
-                const year = monthData.year;
-                if (!monthsByYear[year]) {
-                    monthsByYear[year] = [];
+            // تجميع الأيام حسب السنة ثم الشهر
+            const daysByYear = {};
+            Object.keys(schoolData.days).forEach(dayId => {
+                const dayData = schoolData.days[dayId];
+                const date = new Date(dayData.date);
+                const year = date.getFullYear();
+                const month = date.getMonth() + 1;
+                
+                if (!daysByYear[year]) {
+                    daysByYear[year] = {};
                 }
-                monthsByYear[year].push({ monthId, month: monthData.month });
+                
+                if (!daysByYear[year][month]) {
+                    daysByYear[year][month] = [];
+                }
+                
+                daysByYear[year][month].push({ dayId, date: dayData.date });
             });
             
             // ترتيب السنوات من الأحدث للأقدم
-            const sortedYears = Object.keys(monthsByYear).sort((a, b) => parseInt(b) - parseInt(a));
+            const sortedYears = Object.keys(daysByYear).sort((a, b) => parseInt(b) - parseInt(a));
             
             sortedYears.forEach(year => {
                 // إنشاء مجموعة السنة القابلة للطي
@@ -1818,45 +1809,89 @@
                 monthsContainer.className = 'year-group-months';
                 
                 // ترتيب الشهور في السنة من الأحدث للأقدم
-                monthsByYear[year].sort((a, b) => b.month - a.month);
+                const sortedMonths = Object.keys(daysByYear[year]).sort((a, b) => parseInt(b) - parseInt(a));
+                const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
+                                   'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
                 
-                monthsByYear[year].forEach(({ monthId, month }) => {
-                    const monthItem = document.createElement('div');
-                    monthItem.className = `month-item ${monthId === currentMonthId ? 'active' : ''}`;
-                    monthItem.onclick = (e) => {
-                        // إذا لم يكن الضغط على زر التعديل، اختر الشهر
-                        if (!e.target.classList.contains('month-edit-btn')) {
-                            selectMonth(monthId);
+                sortedMonths.forEach(month => {
+                    const monthNum = parseInt(month);
+                    const monthName = monthNames[monthNum - 1];
+                    const monthDays = daysByYear[year][month];
+                    
+                    // إنشاء مجموعة الشهر القابلة للطي
+                    const monthGroup = document.createElement('div');
+                    monthGroup.className = 'year-group';
+                    monthGroup.setAttribute('data-month', `${year}-${month}`);
+                    monthGroup.style.marginRight = '15px';
+                    monthGroup.style.marginTop = '8px';
+                    
+                    // رأس الشهر (قابل للضغط)
+                    const monthHeader = document.createElement('div');
+                    monthHeader.className = 'year-group-header';
+                    monthHeader.innerHTML = `
+                        <span class="year-group-title">${monthName}</span>
+                        <span class="year-group-toggle">▶</span>
+                    `;
+                    monthHeader.onclick = () => {
+                        monthGroup.classList.toggle('expanded');
+                        // إظهار/إخفاء الأيام عند الضغط على الشهر
+                        if (monthGroup.classList.contains('expanded')) {
+                            daysContainer.style.display = 'block';
+                        } else {
+                            daysContainer.style.display = 'none';
                         }
                     };
-                    monthItem.innerHTML = `
-                        <span class="month-item-name">${getMonthName(month)} ${month}</span>
-                        <button class="month-edit-btn" onclick="event.stopPropagation(); openEditAttendanceModal('${monthId}')">تعديل</button>
-                    `;
-                    monthsContainer.appendChild(monthItem);
+                    
+                    // قائمة الأيام (مخفية افتراضياً)
+                    const daysContainer = document.createElement('div');
+                    daysContainer.className = 'year-group-months';
+                    daysContainer.style.display = 'none'; // إخفاء الأيام افتراضياً
+                    
+                    // ترتيب الأيام من الأحدث للأقدم
+                    monthDays.sort((a, b) => b.date.localeCompare(a.date));
+                    
+                    monthDays.forEach(({ dayId, date }) => {
+                        const dayItem = document.createElement('div');
+                        dayItem.className = `month-item ${dayId === currentDayId ? 'active' : ''}`;
+                        dayItem.onclick = (e) => {
+                            // إذا لم يكن الضغط على زر التعديل، اختر اليوم
+                            if (!e.target.classList.contains('month-edit-btn')) {
+                                selectDay(dayId);
+                            }
+                        };
+                        dayItem.innerHTML = `
+                            <span class="month-item-name">${formatDate(date)}</span>
+                            <button class="month-edit-btn" onclick="event.stopPropagation(); openEditAttendanceModal('${dayId}')">تعديل</button>
+                        `;
+                        daysContainer.appendChild(dayItem);
+                    });
+                    
+                    monthGroup.appendChild(monthHeader);
+                    monthGroup.appendChild(daysContainer);
+                    monthsContainer.appendChild(monthGroup);
                 });
                 
                 yearGroup.appendChild(yearHeader);
                 yearGroup.appendChild(monthsContainer);
-                monthsList.appendChild(yearGroup);
+                daysList.appendChild(yearGroup);
             });
         }
 
-        // اختيار شهر للعرض
-        function selectMonth(monthId) {
-            currentMonthId = monthId;
+        // اختيار يوم للعرض
+        function selectDay(dayId) {
+            currentDayId = dayId;
             saveData();
             updateTableHeader();
             render();
-            renderMonthsList();
+            renderDaysList();
         }
 
         // فتح نافذة تعديل الحضور
-        function openEditAttendanceModal(monthId) {
-            if (!schoolData.months[monthId]) return;
+        function openEditAttendanceModal(dayId) {
+            if (!schoolData.days[dayId]) return;
             
-            const monthData = schoolData.months[monthId];
-            document.getElementById('editAttendanceTitle').textContent = `تعديل الحضور - ${getMonthName(monthData.month)} ${monthData.year}`;
+            const dayData = schoolData.days[dayId];
+            document.getElementById('editAttendanceTitle').textContent = `تعديل الحضور - ${formatDate(dayData.date)}`;
             
             const content = document.getElementById('editAttendanceContent');
             content.innerHTML = '';
@@ -1870,7 +1905,7 @@
                 
                 classNames.forEach(className => {
                     const classData = gradeData.classes[className];
-                    const attendance = monthData.attendance[gradeNum]?.[className] || { presentCount: 0 };
+                    const attendance = dayData.attendance[gradeNum]?.[className] || { presentCount: 0 };
                     const presentCount = attendance.presentCount || 0;
                     
                     const classDiv = document.createElement('div');
@@ -1882,7 +1917,7 @@
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <label>عدد الحاضرين:</label>
-                            <input type="number" id="edit_present_${monthId}_${gradeNum}_${className}" 
+                            <input type="number" id="edit_present_${dayId}_${gradeNum}_${className}" 
                                    value="${presentCount}" 
                                    min="0" 
                                    max="${classData.studentCount}"
@@ -1898,37 +1933,37 @@
             saveBtn.className = 'btn btn-success';
             saveBtn.textContent = 'حفظ التعديلات';
             saveBtn.style.cssText = 'width: 100%; margin-top: 20px;';
-            saveBtn.onclick = () => saveAttendanceEdits(monthId);
+            saveBtn.onclick = () => saveAttendanceEdits(dayId);
             content.appendChild(saveBtn);
             
             document.getElementById('editAttendanceModal').classList.add('active');
         }
 
         // حفظ تعديلات الحضور
-        function saveAttendanceEdits(monthId) {
-            if (!schoolData.months[monthId]) return;
+        function saveAttendanceEdits(dayId) {
+            if (!schoolData.days[dayId]) return;
             
-            const monthData = schoolData.months[monthId];
+            const dayData = schoolData.days[dayId];
             let hasChanges = false;
             
             for (const gradeNum in schoolData.grades) {
-                if (!monthData.attendance[gradeNum]) {
-                    monthData.attendance[gradeNum] = {};
+                if (!dayData.attendance[gradeNum]) {
+                    dayData.attendance[gradeNum] = {};
                 }
                 
                 for (const className in schoolData.grades[gradeNum].classes) {
                     const classData = schoolData.grades[gradeNum].classes[className];
-                    const input = document.getElementById(`edit_present_${monthId}_${gradeNum}_${className}`);
+                    const input = document.getElementById(`edit_present_${dayId}_${gradeNum}_${className}`);
                     
                     if (input) {
                         let presentCount = parseInt(input.value) || 0;
                         presentCount = Math.max(0, Math.min(presentCount, classData.studentCount));
                         
-                        if (!monthData.attendance[gradeNum][className]) {
-                            monthData.attendance[gradeNum][className] = {};
+                        if (!dayData.attendance[gradeNum][className]) {
+                            dayData.attendance[gradeNum][className] = {};
                         }
                         
-                        monthData.attendance[gradeNum][className].presentCount = presentCount;
+                        dayData.attendance[gradeNum][className].presentCount = presentCount;
                         hasChanges = true;
                     }
                 }
@@ -1953,24 +1988,31 @@
                 const parsed = JSON.parse(saved);
                 schoolData = parsed;
                 
-                // التأكد من وجود months
-                if (!schoolData.months) {
+                // التأكد من وجود days
+                if (!schoolData.days) {
+                    schoolData.days = {};
+                }
+                
+                // تحويل البيانات القديمة من months إلى days إذا لزم الأمر
+                if (schoolData.months && Object.keys(schoolData.months).length > 0) {
+                    // يمكن إضافة منطق للتحويل هنا إذا لزم الأمر
+                    // لكن سنتركه للمستخدم لإعادة إدخال البيانات
                     schoolData.months = {};
                 }
             }
             
-            // تحميل الشهر الحالي المحفوظ
-            const savedCurrentMonth = localStorage.getItem('currentMonthId');
-            if (savedCurrentMonth && schoolData.months[savedCurrentMonth]) {
-                currentMonthId = savedCurrentMonth;
+            // تحميل اليوم الحالي المحفوظ
+            const savedCurrentDay = localStorage.getItem('currentDayId');
+            if (savedCurrentDay && schoolData.days[savedCurrentDay]) {
+                currentDayId = savedCurrentDay;
             }
             
-            renderMonthsList();
+            renderDaysList();
             
-            // تعيين أول شهر كالشهر الحالي إذا لم يكن هناك شهر محدد
-            if (!currentMonthId && Object.keys(schoolData.months).length > 0) {
-                const firstMonth = Object.keys(schoolData.months).sort()[0];
-                currentMonthId = firstMonth;
+            // تعيين أول يوم كاليوم الحالي إذا لم يكن هناك يوم محدد
+            if (!currentDayId && Object.keys(schoolData.days).length > 0) {
+                const firstDay = Object.keys(schoolData.days).sort()[0];
+                currentDayId = firstDay;
             }
             
             updateTableHeader();
@@ -1980,22 +2022,21 @@
         // حفظ البيانات في localStorage
         function saveData() {
             localStorage.setItem('schoolAbsenceData', JSON.stringify(schoolData));
-            if (currentMonthId) {
-                localStorage.setItem('currentMonthId', currentMonthId);
+            if (currentDayId) {
+                localStorage.setItem('currentDayId', currentDayId);
             }
             render();
         }
 
-        // تنزيل ملف Word للشهر والسنة الحاليين
+        // تنزيل ملف Word لليوم الحالي
         function downloadWord() {
-            if (!currentMonthId || !schoolData.months[currentMonthId]) {
-                alert('لا يوجد شهر محدد للتنزيل');
+            if (!currentDayId || !schoolData.days[currentDayId]) {
+                alert('لا يوجد يوم محدد للتنزيل');
                 return;
             }
             
-            const monthData = schoolData.months[currentMonthId];
-            const monthName = getMonthName(monthData.month);
-            const year = monthData.year;
+            const dayData = schoolData.days[currentDayId];
+            const formattedDate = formatDate(dayData.date);
             
             // محاولة تحويل صورة الشعار إلى base64
             const logoImg = document.querySelector('.header-logo');
@@ -2008,23 +2049,23 @@
                         const reader = new FileReader();
                         reader.onloadend = function() {
                             const logoBase64 = reader.result;
-                            createWordFile(monthName, year, logoBase64);
+                            createWordFile(formattedDate, logoBase64);
                         };
                         reader.onerror = function() {
-                            createWordFile(monthName, year, '');
+                            createWordFile(formattedDate, '');
                         };
                         reader.readAsDataURL(blob);
                     })
                     .catch(() => {
                         // إذا فشل، استخدم مسار الصورة مباشرة
-                        createWordFile(monthName, year, logoImg.src);
+                        createWordFile(formattedDate, logoImg.src);
                     });
             } else {
-                createWordFile(monthName, year, '');
+                createWordFile(formattedDate, '');
             }
         }
         
-        function createWordFile(monthName, year, logoSrc) {
+        function createWordFile(dateString, logoSrc) {
             // نسخ الجدول وتصغيره
             const table = document.getElementById('mainTable').cloneNode(true);
             const allCells = table.querySelectorAll('th, td');
@@ -2041,7 +2082,7 @@
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
                 <head>
                     <meta charset='utf-8'>
-                    <title>بيانات الحضور والغياب - ${monthName} ${year}</title>
+                    <title>بيانات الحضور والغياب - ${dateString}</title>
                     <!--[if gte mso 9]>
                     <xml>
                         <w:WordDocument>
@@ -2112,7 +2153,7 @@
                     <div class="header">
                         ${logoHtml}
                         <h1>نظام الغيابات للمدرسة الأهلية الخيرية</h1>
-                        <h2>بيانات الحضور والغياب لشهر ${monthName} ${year}</h2>
+                        <h2>بيانات الحضور والغياب ليوم ${dateString}</h2>
                     </div>
                     ${table.outerHTML}
                 </body>
@@ -2127,7 +2168,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `بيانات_الحضور_والغياب_${monthName}_${year}.doc`;
+            link.download = `بيانات_الحضور_والغياب_${dateString.replace(/\s+/g, '_')}.doc`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -2208,24 +2249,24 @@
                 studentCount: studentCount
             };
 
-            // تحديد الشهور التي سيتم إضافة الشعبة لها
-            const addToMonths = document.getElementById('addToMonths').value;
-            let targetMonths = [];
+            // تحديد الأيام التي سيتم إضافة الشعبة لها
+            const addToDays = document.getElementById('addToMonths').value;
+            let targetDays = [];
 
-            if (addToMonths === 'current') {
-                // الشهر الحالي فقط
-                if (currentMonthId && schoolData.months[currentMonthId]) {
-                    targetMonths = [currentMonthId];
+            if (addToDays === 'current') {
+                // اليوم الحالي فقط
+                if (currentDayId && schoolData.days[currentDayId]) {
+                    targetDays = [currentDayId];
                 } else {
-                    errorDiv.textContent = 'لا يوجد شهر محدد حالياً. يرجى اختيار شهر أولاً أو إضافة للكل.';
+                    errorDiv.textContent = 'لا يوجد يوم محدد حالياً. يرجى اختيار يوم أولاً أو إضافة للكل.';
                     errorDiv.style.display = 'block';
                     return;
                 }
-            } else if (addToMonths === 'all') {
-                // جميع الشهور
-                targetMonths = Object.keys(schoolData.months);
-            } else if (addToMonths === 'month') {
-                // شهر معين
+            } else if (addToDays === 'all') {
+                // جميع الأيام
+                targetDays = Object.keys(schoolData.days);
+            } else if (addToDays === 'month') {
+                // شهر معين - إيجاد جميع الأيام في الشهر
                 const month = parseInt(document.getElementById('addToMonthSelect').value);
                 const year = parseInt(document.getElementById('addToMonthYear').value);
                 
@@ -2235,16 +2276,23 @@
                     return;
                 }
                 
-                const monthId = getMonthId(year, month);
-                if (schoolData.months[monthId]) {
-                    targetMonths = [monthId];
-                } else {
-                    errorDiv.textContent = `الشهر المحدد (${getMonthName(month)} ${year}) غير موجود. يرجى إضافته أولاً.`;
+                // إيجاد جميع الأيام في الشهر المحدد
+                for (const dayId in schoolData.days) {
+                    const dayDate = new Date(schoolData.days[dayId].date);
+                    if (dayDate.getFullYear() === year && dayDate.getMonth() + 1 === month) {
+                        targetDays.push(dayId);
+                    }
+                }
+                
+                if (targetDays.length === 0) {
+                    const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
+                                       'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+                    errorDiv.textContent = `لا توجد أيام مضافة للشهر المحدد (${monthNames[month - 1]} ${year})`;
                     errorDiv.style.display = 'block';
                     return;
                 }
-            } else if (addToMonths === 'year') {
-                // سنة معينة
+            } else if (addToDays === 'year') {
+                // سنة معينة - إيجاد جميع الأيام في السنة
                 const year = parseInt(document.getElementById('addToYear').value);
                 
                 if (!year || year < 2020 || year > 2100) {
@@ -2253,27 +2301,28 @@
                     return;
                 }
                 
-                // إيجاد جميع الشهور في السنة المحددة
-                for (const monthId in schoolData.months) {
-                    if (schoolData.months[monthId].year === year) {
-                        targetMonths.push(monthId);
+                // إيجاد جميع الأيام في السنة المحددة
+                for (const dayId in schoolData.days) {
+                    const dayDate = new Date(schoolData.days[dayId].date);
+                    if (dayDate.getFullYear() === year) {
+                        targetDays.push(dayId);
                     }
                 }
                 
-                if (targetMonths.length === 0) {
-                    errorDiv.textContent = `لا توجد شهور مضافة للسنة ${year}`;
+                if (targetDays.length === 0) {
+                    errorDiv.textContent = `لا توجد أيام مضافة للسنة ${year}`;
                     errorDiv.style.display = 'block';
                     return;
                 }
             }
 
-            // إضافة الشعبة للشهور المحددة
-            targetMonths.forEach(monthId => {
-                const monthData = schoolData.months[monthId];
-                if (!monthData.attendance[gradeNum]) {
-                    monthData.attendance[gradeNum] = {};
+            // إضافة الشعبة للأيام المحددة
+            targetDays.forEach(dayId => {
+                const dayData = schoolData.days[dayId];
+                if (!dayData.attendance[gradeNum]) {
+                    dayData.attendance[gradeNum] = {};
                 }
-                monthData.attendance[gradeNum][className] = {
+                dayData.attendance[gradeNum][className] = {
                     presentCount: 0
                 };
             });
@@ -2282,17 +2331,20 @@
             
             // إظهار رسالة النجاح
             let successMessage = `✓ تم إضافة الشعبة "${className}" في الصف ${gradeName} بنجاح!`;
-            if (addToMonths === 'current') {
-                const monthData = schoolData.months[currentMonthId];
-                successMessage += `\nتمت الإضافة للشهر: ${getMonthName(monthData.month)} ${monthData.year}`;
-            } else if (addToMonths === 'all') {
-                successMessage += `\nتمت الإضافة لجميع الشهور (${targetMonths.length} شهر)`;
-            } else if (addToMonths === 'month') {
-                const monthData = schoolData.months[targetMonths[0]];
-                successMessage += `\nتمت الإضافة للشهر: ${getMonthName(monthData.month)} ${monthData.year}`;
-            } else if (addToMonths === 'year') {
+            if (addToDays === 'current') {
+                const dayData = schoolData.days[currentDayId];
+                successMessage += `\nتمت الإضافة لليوم: ${formatDate(dayData.date)}`;
+            } else if (addToDays === 'all') {
+                successMessage += `\nتمت الإضافة لجميع الأيام (${targetDays.length} يوم)`;
+            } else if (addToDays === 'month') {
+                const month = parseInt(document.getElementById('addToMonthSelect').value);
+                const year = parseInt(document.getElementById('addToMonthYear').value);
+                const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
+                                   'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+                successMessage += `\nتمت الإضافة لشهر ${monthNames[month - 1]} ${year} (${targetDays.length} يوم)`;
+            } else if (addToDays === 'year') {
                 const year = parseInt(document.getElementById('addToYear').value);
-                successMessage += `\nتمت الإضافة لجميع شهور السنة ${year} (${targetMonths.length} شهر)`;
+                successMessage += `\nتمت الإضافة لجميع أيام السنة ${year} (${targetDays.length} يوم)`;
             }
             
             successDiv.textContent = successMessage;
@@ -2303,7 +2355,7 @@
             document.getElementById('studentCount').value = '';
             
             saveData();
-            renderMonthsList();
+            renderDaysList();
             render();
             // لا نغلق النافذة - تبقى مفتوحة لإضافة المزيد من الشعبات
         }
@@ -2311,13 +2363,13 @@
 
         // حساب إجمالي الغياب لشعبة
         function getClassAbsences(gradeNum, className) {
-            if (!currentMonthId || !schoolData.months[currentMonthId]) {
+            if (!currentDayId || !schoolData.days[currentDayId]) {
                 return 0;
             }
             
             const classData = schoolData.grades[gradeNum].classes[className];
-            const monthData = schoolData.months[currentMonthId];
-            const attendance = monthData.attendance[gradeNum]?.[className] || { presentCount: 0 };
+            const dayData = schoolData.days[currentDayId];
+            const attendance = dayData.attendance[gradeNum]?.[className] || { presentCount: 0 };
             const presentCount = attendance.presentCount || 0;
             
             // الغياب = عدد الطلاب - عدد الحاضرين
@@ -2346,12 +2398,12 @@
 
         // حساب عدد الحاضرين لشعبة
         function getClassPresentCount(gradeNum, className) {
-            if (!currentMonthId || !schoolData.months[currentMonthId]) {
+            if (!currentDayId || !schoolData.days[currentDayId]) {
                 return 0;
             }
             
-            const monthData = schoolData.months[currentMonthId];
-            const attendance = monthData.attendance[gradeNum]?.[className] || { presentCount: 0 };
+            const dayData = schoolData.days[currentDayId];
+            const attendance = dayData.attendance[gradeNum]?.[className] || { presentCount: 0 };
             return attendance.presentCount || 0;
         }
 
@@ -2430,13 +2482,13 @@
             
             delete schoolData.grades[gradeNum];
             
-            // حذف الصف من جميع الشهور
-            for (const monthId in schoolData.months) {
-                delete schoolData.months[monthId].attendance[gradeNum];
+            // حذف الصف من جميع الأيام
+            for (const dayId in schoolData.days) {
+                delete schoolData.days[dayId].attendance[gradeNum];
             }
             
             saveData();
-            renderMonthsList();
+            renderDaysList();
             render();
         }
 
@@ -2446,37 +2498,37 @@
                 delete schoolData.grades[gradeNum];
             }
             
-            // حذف الشعبة من جميع الشهور
-            for (const monthId in schoolData.months) {
-                if (schoolData.months[monthId].attendance[gradeNum]) {
-                    delete schoolData.months[monthId].attendance[gradeNum][className];
+            // حذف الشعبة من جميع الأيام
+            for (const dayId in schoolData.days) {
+                if (schoolData.days[dayId].attendance[gradeNum]) {
+                    delete schoolData.days[dayId].attendance[gradeNum][className];
                 }
             }
             
             saveData();
-            renderMonthsList();
+            renderDaysList();
             render();
         }
 
-        function deleteMonthFunc(monthId) {
-            if (!confirm('هل أنت متأكد من حذف هذا الشهر؟')) {
+        function deleteDayFunc(dayId) {
+            if (!confirm('هل أنت متأكد من حذف هذا اليوم؟')) {
                 return;
             }
             
-            delete schoolData.months[monthId];
+            delete schoolData.days[dayId];
             
-            // إذا كان الشهر المحذوف هو الشهر الحالي، اختر شهر آخر أو اتركه فارغاً
-            if (currentMonthId === monthId) {
-                const remainingMonths = Object.keys(schoolData.months);
-                if (remainingMonths.length > 0) {
-                    currentMonthId = remainingMonths[0];
+            // إذا كان اليوم المحذوف هو اليوم الحالي، اختر يوم آخر أو اتركه فارغاً
+            if (currentDayId === dayId) {
+                const remainingDays = Object.keys(schoolData.days);
+                if (remainingDays.length > 0) {
+                    currentDayId = remainingDays[0];
                 } else {
-                    currentMonthId = null;
+                    currentDayId = null;
                 }
             }
             
             saveData();
-            renderMonthsList();
+            renderDaysList();
             updateTableHeader();
             render();
         }
@@ -2517,70 +2569,88 @@
             
             let hasItems = false;
             
-            // قسم حذف الشهور (مجمعة حسب السنة)
-            if (Object.keys(schoolData.months).length > 0) {
-                const monthsTitle = document.createElement('h3');
-                monthsTitle.style.cssText = 'margin: 0 0 15px 0; color: #202124; font-size: 1.2em; font-weight: 600; padding-bottom: 10px; border-bottom: 2px solid #bdc1c6;';
-                monthsTitle.textContent = 'الشهور';
-                deleteItemsList.appendChild(monthsTitle);
+            // قسم حذف الأيام (مجمعة حسب الشهر والسنة)
+            if (Object.keys(schoolData.days).length > 0) {
+                const daysTitle = document.createElement('h3');
+                daysTitle.style.cssText = 'margin: 0 0 15px 0; color: #202124; font-size: 1.2em; font-weight: 600; padding-bottom: 10px; border-bottom: 2px solid #bdc1c6;';
+                daysTitle.textContent = 'الأيام';
+                deleteItemsList.appendChild(daysTitle);
                 
-                // تجميع الشهور حسب السنة
-                const monthsByYear = {};
-                Object.keys(schoolData.months).forEach(monthId => {
-                    const monthData = schoolData.months[monthId];
-                    const year = monthData.year;
-                    if (!monthsByYear[year]) {
-                        monthsByYear[year] = [];
+                // تجميع الأيام حسب الشهر والسنة
+                const daysByMonth = {};
+                Object.keys(schoolData.days).forEach(dayId => {
+                    const dayData = schoolData.days[dayId];
+                    const date = new Date(dayData.date);
+                    const year = date.getFullYear();
+                    const month = date.getMonth() + 1;
+                    const monthKey = `${year}-${month}`;
+                    
+                    if (!daysByMonth[monthKey]) {
+                        daysByMonth[monthKey] = {
+                            year: year,
+                            month: month,
+                            days: []
+                        };
                     }
-                    monthsByYear[year].push({ monthId, month: monthData.month });
+                    daysByMonth[monthKey].days.push({ dayId, date: dayData.date });
                 });
                 
-                // ترتيب السنوات من الأحدث للأقدم
-                const sortedYears = Object.keys(monthsByYear).sort((a, b) => parseInt(b) - parseInt(a));
+                // ترتيب الشهور من الأحدث للأقدم
+                const sortedMonths = Object.keys(daysByMonth).sort((a, b) => {
+                    const [yearA, monthA] = a.split('-').map(Number);
+                    const [yearB, monthB] = b.split('-').map(Number);
+                    if (yearA !== yearB) return yearB - yearA;
+                    return monthB - monthA;
+                });
                 
-                sortedYears.forEach(year => {
-                    // عنصر السنة القابل للطي
-                    const yearItem = document.createElement('div');
-                    yearItem.className = 'delete-year-item';
-                    yearItem.setAttribute('data-year', year);
+                sortedMonths.forEach(monthKey => {
+                    const monthData = daysByMonth[monthKey];
+                    const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
+                                       'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+                    const monthName = monthNames[monthData.month - 1];
                     
-                    const yearHeader = document.createElement('div');
-                    yearHeader.className = 'delete-year-header';
-                    yearHeader.innerHTML = `
+                    // عنصر الشهر القابل للطي
+                    const monthItem = document.createElement('div');
+                    monthItem.className = 'delete-year-item';
+                    monthItem.setAttribute('data-month', monthKey);
+                    
+                    const monthHeader = document.createElement('div');
+                    monthHeader.className = 'delete-year-header';
+                    monthHeader.innerHTML = `
                         <div class="delete-year-header-content">
-                            <h3>${year}</h3>
+                            <h3>${monthName} ${monthData.year}</h3>
                         </div>
                         <span class="delete-year-toggle">▶</span>
                     `;
-                    yearHeader.onclick = (e) => {
+                    monthHeader.onclick = (e) => {
                         if (!e.target.classList.contains('delete-item-btn')) {
-                            toggleYearMonths(year);
+                            toggleYearMonths(monthKey);
                         }
                     };
                     
-                    const monthsList = document.createElement('div');
-                    monthsList.className = 'delete-months-list';
+                    const daysList = document.createElement('div');
+                    daysList.className = 'delete-months-list';
                     
-                    // ترتيب الشهور في السنة من الأحدث للأقدم
-                    monthsByYear[year].sort((a, b) => b.month - a.month);
+                    // ترتيب الأيام في الشهر من الأحدث للأقدم
+                    monthData.days.sort((a, b) => b.date.localeCompare(a.date));
                     
-                    monthsByYear[year].forEach(({ monthId, month }) => {
-                        const monthItem = document.createElement('div');
-                        monthItem.className = 'delete-month-item';
-                        monthItem.innerHTML = `
+                    monthData.days.forEach(({ dayId, date }) => {
+                        const dayItem = document.createElement('div');
+                        dayItem.className = 'delete-month-item';
+                        dayItem.innerHTML = `
                             <div class="delete-month-info">
-                                <h4>${getMonthName(month)} ${month}</h4>
+                                <h4>${formatDate(date)}</h4>
                             </div>
-                            <button class="delete-item-btn" onclick="event.stopPropagation(); deleteMonthFunc('${monthId}'); closeDeleteModal();">
-                                حذف الشهر
+                            <button class="delete-item-btn" onclick="event.stopPropagation(); deleteDayFunc('${dayId}'); closeDeleteModal();">
+                                حذف اليوم
                             </button>
                         `;
-                        monthsList.appendChild(monthItem);
+                        daysList.appendChild(dayItem);
                     });
                     
-                    yearItem.appendChild(yearHeader);
-                    yearItem.appendChild(monthsList);
-                    deleteItemsList.appendChild(yearItem);
+                    monthItem.appendChild(monthHeader);
+                    monthItem.appendChild(daysList);
+                    deleteItemsList.appendChild(monthItem);
                     hasItems = true;
                 });
             }
@@ -2655,11 +2725,11 @@
             }
         }
 
-        // تبديل عرض/إخفاء الشهور عند الضغط على السنة
-        function toggleYearMonths(year) {
-            const yearItem = document.querySelector(`.delete-year-item[data-year="${year}"]`);
-            if (yearItem) {
-                yearItem.classList.toggle('expanded');
+        // تبديل عرض/إخفاء الأيام عند الضغط على الشهر
+        function toggleYearMonths(monthKey) {
+            const monthItem = document.querySelector(`.delete-year-item[data-month="${monthKey}"]`);
+            if (monthItem) {
+                monthItem.classList.toggle('expanded');
             }
         }
 
@@ -2692,11 +2762,11 @@
                 return;
             }
 
-            if (!currentMonthId || !schoolData.months[currentMonthId]) {
+            if (!currentDayId || !schoolData.days[currentDayId]) {
                 tableBody.innerHTML = `
                     <tr>
                         <td colspan="6" style="text-align: center; padding: 40px; color: #999;">
-لا يوجد شهر محدد. قم بإضافة شهر للبدء.
+لا يوجد يوم محدد. قم بإضافة يوم للبدء.
                         </td>
                     </tr>
                 `;
